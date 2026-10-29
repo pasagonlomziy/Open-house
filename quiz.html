@@ -23,7 +23,7 @@
         query,
         limit,
         serverTimestamp,
-        onSnapshot, // ⚡ เพิ่มการใช้งาน onSnapshot สำหรับ Real-time
+        onSnapshot,
       } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
@@ -39,7 +39,6 @@
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
-      // ตัวแปรเก็บ Unsubscribe listener เพื่อป้องกันการดึงซ้ำซ้อน
       const leaderboardListeners = {};
 
       window.saveScoreToCloud = async function (
@@ -92,12 +91,10 @@
         }
       };
 
-      // ⚡ ฟังก์ชันดึงและอัปเดตตารางคะแนนแบบ Real-time (onSnapshot)
       window.fetchAndRenderLeaderboard = function (tbodyId) {
         const tbody = document.getElementById(tbodyId);
         if (!tbody) return;
 
-        // หากมีการเปิด Listener ไว้แล้วให้ยกเลิกอันเก่าก่อน
         if (leaderboardListeners[tbodyId]) {
           leaderboardListeners[tbodyId]();
         }
@@ -108,7 +105,6 @@
         try {
           const q = query(collection(db, "leaderboard"), limit(100));
 
-          // ใช้ onSnapshot เพื่อติดตามการเปลี่ยนแปลงข้อมูลตลอดเวลา
           leaderboardListeners[tbodyId] = onSnapshot(
             q,
             (querySnapshot) => {
@@ -117,7 +113,6 @@
                 list.push(docSnap.data());
               });
 
-              // จัดเรียงลำดับ คะแนนมากไปน้อย -> เวลาใช้น้อยไปมาก
               list.sort((a, b) => {
                 const scoreA =
                   a.correctTotal !== undefined
@@ -620,7 +615,6 @@
         top: 0;
       }
 
-      /* ===== Mobile / UX overrides ===== */
       html,
       body {
         overscroll-behavior: none;
@@ -805,7 +799,9 @@
     <div id="game-container">
       <!-- HUD Bar -->
       <div id="hud">
-        <a href="index.html" class="hud-badge lb-btn-hud">🏠 หน้าหลัก</a>
+        <button onclick="goToHome()" class="hud-badge lb-btn-hud">
+          🏠 หน้าหลัก
+        </button>
         <div class="hud-badge hud-name">
           👤 <span class="hud-name-text" id="player-disp-name">ผู้เล่น</span>
         </div>
@@ -837,7 +833,6 @@
             🏆
           </button>
           <div class="modal-title">OPEN HOUSE IT QUEST</div>
-          \1
           <p class="start-subtext hint">
             👆 ลากจอยสติ๊กด้านซ้ายล่าง (หรือกด WASD)
             เดินไปชนลูกบอลเพื่อตอบคำถามให้ครบ 10 ข้อ
@@ -872,9 +867,9 @@
             >
               🎮 เริ่มเล่นเกม
             </button>
-            <a href="index.html" class="action-btn secondary-btn"
-              >🏠 กลับหน้าหลัก</a
-            >
+            <button onclick="goToHome()" class="action-btn secondary-btn">
+              🏠 กลับหน้าหลัก
+            </button>
             <button class="action-btn secondary-btn" onclick="openAdminModal()">
               ⚙️ หน้าผู้ดูแล
             </button>
@@ -1032,7 +1027,9 @@
           </div>
           <br />
           <div style="display: flex; gap: 6px; justify-content: center">
-            <a href="index.html" class="action-btn">🏠 กลับหน้าหลัก</a>
+            <button onclick="goToHome()" class="action-btn">
+              🏠 กลับหน้าหลัก
+            </button>
           </div>
         </div>
       </div>
@@ -1095,7 +1092,7 @@
         return `${m}:${s}`;
       }
 
-      // ================= GAME ENGINE =================
+      // ================= GAME ENGINE & STATE MANAGEMENT =================
       const canvas = document.getElementById("gameCanvas");
       const ctx = canvas.getContext("2d");
 
@@ -1135,6 +1132,95 @@
       let startTime = 0;
       let timerInterval = null;
       let elapsedTimeInSec = 0;
+      let isGameOver = false;
+
+      const player = {
+        x: 10 * TILE_SIZE,
+        y: 13 * TILE_SIZE,
+        width: 24,
+        height: 24,
+        speed: 2.4,
+        isMoving: false,
+      };
+
+      const ballTargets = [
+        { id: 0, x: 10 * TILE_SIZE, y: 11 * TILE_SIZE, active: true },
+        { id: 1, x: 3 * TILE_SIZE, y: 7 * TILE_SIZE, active: true },
+        { id: 2, x: 8 * TILE_SIZE, y: 7 * TILE_SIZE, active: true },
+        { id: 3, x: 12 * TILE_SIZE, y: 7 * TILE_SIZE, active: true },
+        { id: 4, x: 16 * TILE_SIZE, y: 7 * TILE_SIZE, active: true },
+        { id: 5, x: 2 * TILE_SIZE, y: 3 * TILE_SIZE, active: true },
+        { id: 6, x: 6 * TILE_SIZE, y: 3 * TILE_SIZE, active: true },
+        { id: 7, x: 10 * TILE_SIZE, y: 3 * TILE_SIZE, active: true },
+        { id: 8, x: 14 * TILE_SIZE, y: 3 * TILE_SIZE, active: true },
+        { id: 9, x: 17 * TILE_SIZE, y: 3 * TILE_SIZE, active: true },
+      ];
+
+      // ⚡ AUTO SAVE & RESUME ENGINE (ระบบป้องกันการเล่นเหลี่ยม)
+      function saveGameState() {
+        if (!isGameStarted || isGameOver) return;
+        const state = {
+          playerX: player.x,
+          playerY: player.y,
+          elapsedTimeInSec: elapsedTimeInSec,
+          ballsPassed: ballsPassed,
+          activeBalls: ballTargets.map((b) => b.active),
+          currentQuizQuestions: currentQuizQuestions,
+          hasSavedData: true,
+        };
+        localStorage.setItem("cpe_quiz_saved_state", JSON.stringify(state));
+      }
+
+      function loadGameState() {
+        const savedStr = localStorage.getItem("cpe_quiz_saved_state");
+        if (!savedStr) return false;
+        try {
+          const state = JSON.parse(savedStr);
+          if (state && state.hasSavedData) {
+            player.x = state.playerX;
+            player.y = state.playerY;
+            elapsedTimeInSec = state.elapsedTimeInSec || 0;
+            ballsPassed = state.ballsPassed || 0;
+
+            if (state.activeBalls && Array.isArray(state.activeBalls)) {
+              ballTargets.forEach((b, i) => {
+                if (state.activeBalls[i] !== undefined) {
+                  b.active = state.activeBalls[i];
+                }
+              });
+            }
+
+            if (
+              state.currentQuizQuestions &&
+              state.currentQuizQuestions.length > 0
+            ) {
+              currentQuizQuestions = state.currentQuizQuestions;
+            }
+            return true;
+          }
+        } catch (e) {
+          console.error("เกิดข้อผิดพลาดในการดึงข้อมูลเซฟเกม:", e);
+        }
+        return false;
+      }
+
+      function clearGameState() {
+        localStorage.removeItem("cpe_quiz_saved_state");
+      }
+
+      function goToHome() {
+        if (isGameStarted && !isGameOver) {
+          saveGameState();
+        }
+        window.location.href = "index.html";
+      }
+
+      window.addEventListener("beforeunload", saveGameState);
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden && isGameStarted && !isGameOver) {
+          saveGameState();
+        }
+      });
 
       function loadLoggedInUser() {
         const fname = localStorage.getItem("cpe_firstname") || "";
@@ -1160,23 +1246,22 @@
             : "🏫 ไม่ระบุสังกัด";
         }
 
-        checkPlayRestriction();
+        const isRestricted = checkPlayRestriction();
+
+        // หากยังไม่เคยเล่นจบ และมีข้อมูลเซฟเดิม ให้เปลี่ยนปุ่มเป็น "▶️ เล่นต่อจากเดิม"
+        if (!isRestricted && localStorage.getItem("cpe_quiz_saved_state")) {
+          const startBtn = document.getElementById("btn-start-game");
+          if (startBtn) {
+            startBtn.innerHTML = "▶️ เล่นต่อจากจุดเดิม";
+          }
+        }
       }
 
       window.addEventListener("DOMContentLoaded", () => {
         loadLoggedInUser();
       });
 
-      const player = {
-        x: 10 * TILE_SIZE,
-        y: 13 * TILE_SIZE,
-        width: 24,
-        height: 24,
-        speed: 2.4,
-        isMoving: false,
-      };
-
-      // ================= 📚 คลังคำถาม 100 ข้อ (ไร้คำใบ้ในวงเล็บ 100%) =================
+      // ================= 📚 คลังคำถาม 100 ข้อ =================
       const questionPool = {
         easy: [
           {
@@ -2092,7 +2177,6 @@
         return array;
       }
 
-      // 🎲 ฟังก์ชันสุ่มดึงข้อสอบ (ง่าย 5 ข้อ, ปานกลาง 4 ข้อ, ยาก 1 ข้อ รวม 10 ข้อ) พร้อมสลับช้อยส์
       function prepareRandomQuestions() {
         const easySample = shuffleArray(questionPool.easy).slice(0, 5);
         const medSample = shuffleArray(questionPool.medium).slice(0, 4);
@@ -2112,19 +2196,6 @@
           };
         });
       }
-
-      const ballTargets = [
-        { id: 0, x: 10 * TILE_SIZE, y: 11 * TILE_SIZE, active: true },
-        { id: 1, x: 3 * TILE_SIZE, y: 7 * TILE_SIZE, active: true },
-        { id: 2, x: 8 * TILE_SIZE, y: 7 * TILE_SIZE, active: true },
-        { id: 3, x: 12 * TILE_SIZE, y: 7 * TILE_SIZE, active: true },
-        { id: 4, x: 16 * TILE_SIZE, y: 7 * TILE_SIZE, active: true },
-        { id: 5, x: 2 * TILE_SIZE, y: 3 * TILE_SIZE, active: true },
-        { id: 6, x: 6 * TILE_SIZE, y: 3 * TILE_SIZE, active: true },
-        { id: 7, x: 10 * TILE_SIZE, y: 3 * TILE_SIZE, active: true },
-        { id: 8, x: 14 * TILE_SIZE, y: 3 * TILE_SIZE, active: true },
-        { id: 9, x: 17 * TILE_SIZE, y: 3 * TILE_SIZE, active: true },
-      ];
 
       const keys = { Up: false, Down: false, Left: false, Right: false };
       let activeTarget = null;
@@ -2252,18 +2323,38 @@
       function startGame() {
         if (checkPlayRestriction()) return;
 
-        prepareRandomQuestions();
+        // ตรวจสอบว่ามีเซฟเก่าที่เล่นค้างไว้หรือไม่
+        const hasSavedState = loadGameState();
+        if (!hasSavedState) {
+          prepareRandomQuestions();
+          ballTargets.forEach((b) => (b.active = true));
+          ballsPassed = 0;
+          elapsedTimeInSec = 0;
+          player.x = 10 * TILE_SIZE;
+          player.y = 13 * TILE_SIZE;
+        }
 
         document.getElementById("player-disp-name").innerText = playerName;
         document.getElementById("start-modal").style.display = "none";
 
+        // อัปเดต HUD ให้เป็นปัจจุบัน
+        const clearedCount = ballTargets.filter((b) => !b.active).length;
+        document.getElementById("keys-text").innerText =
+          `⚽ ${clearedCount}/10 · ✅ ${ballsPassed}`;
+        document.getElementById("timer-disp").innerText =
+          `⏱️ ${formatTimeStr(elapsedTimeInSec)}`;
+
         isGameStarted = true;
-        startTime = Date.now();
+        isGameOver = false;
+
+        // ปรับตั้งเวลาเริ่มต้นให้ต่อเนื่องกับเวลาที่เซฟค้างไว้
+        startTime = Date.now() - elapsedTimeInSec * 1000;
+        if (timerInterval) clearInterval(timerInterval);
         timerInterval = setInterval(updateTimer, 1000);
       }
 
       function updateTimer() {
-        if (!isGameStarted) return;
+        if (!isGameStarted || isGameOver) return;
         elapsedTimeInSec = Math.floor((Date.now() - startTime) / 1000);
         document.getElementById("timer-disp").innerText =
           `⏱️ ${formatTimeStr(elapsedTimeInSec)}`;
@@ -2296,7 +2387,6 @@
         let nextX = player.x + dx * player.speed * dt;
         let nextY = player.y + dy * player.speed * dt;
 
-        // Wall Collision Boundaries
         const wallTopY = 9.0 * TILE_SIZE;
         const wallBottomY = 11.0 * TILE_SIZE;
         const gateLeftX = 8.8 * TILE_SIZE;
@@ -2343,7 +2433,6 @@
           Math.min(WORLD_H - TILE_SIZE - player.height, nextY),
         );
 
-        // Collision Check with Soccer Balls
         ballTargets.forEach((ball) => {
           if (ball.active && !isQuizOpen && !isLBModalOpen) {
             const dist = Math.hypot(
@@ -2423,6 +2512,9 @@
           feedback.innerHTML = "❌ ตอบผิด!";
         }
 
+        // เซฟความคืบหน้าการเล่นทันทีหลังจากทำคำถามแต่ละข้อเสร็จ
+        saveGameState();
+
         setTimeout(() => {
           document.getElementById("keys-text").innerText =
             `⚽ ${ballTargets.filter((b) => !b.active).length}/10 · ✅ ${ballsPassed}`;
@@ -2438,8 +2530,12 @@
       }
 
       function finishGame() {
+        isGameOver = true;
         clearInterval(timerInterval);
         elapsedTimeInSec = Math.floor((Date.now() - startTime) / 1000);
+
+        // ล้างข้อมูลเซฟชั่วคราวออก และบันทึกว่าเคยเล่นจบแล้ว
+        clearGameState();
         localStorage.setItem("cpe_quiz_played", "true");
 
         document.getElementById("win-summary").innerText =
@@ -2909,7 +3005,6 @@
         if (isGameStarted && !isQuizOpen) drawNearestBallArrow();
       }
 
-      // ลูกศรชี้ไปหาลูกบอลที่ใกล้ที่สุดเมื่อมันอยู่นอกจอ
       function drawNearestBallArrow() {
         let near = null,
           nd = Infinity;
@@ -2957,7 +3052,6 @@
       }
       requestAnimationFrame(gameLoop);
 
-      // กดเลข 1-4 เพื่อตอบข้อสอบบนคอมพิวเตอร์
       window.addEventListener("keydown", (e) => {
         if (
           ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key) &&
