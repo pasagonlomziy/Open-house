@@ -231,7 +231,7 @@
         }
       }
 
-      /* 3D keycap buttons */
+      /* 3D keycap buttons (ปรับแก้ไขให้เท่ากันเป๊ะ) */
       a[href="quiz.html"],
       a[href="personnel.html"],
       button[onclick*="menu-modal"] {
@@ -246,15 +246,11 @@
           0 7px 0 #c2410c,
           0 14px 22px rgba(194, 65, 12, 0.35) !important;
       }
-      button[onclick*="menu-modal"] {
-        box-shadow:
-          0 6px 0 #fdba74,
-          0 12px 18px rgba(249, 115, 22, 0.2) !important;
-      }
+      button[onclick*="menu-modal"],
       a[href="personnel.html"] {
         box-shadow:
-          0 6px 0 #cbd5e1,
-          0 12px 18px rgba(71, 85, 105, 0.15) !important;
+          0 5px 0 #fed7aa,
+          0 10px 18px rgba(249, 115, 22, 0.15) !important;
       }
       a[href="quiz.html"]:active {
         transform: translateY(6px) !important;
@@ -264,12 +260,16 @@
       }
       button[onclick*="menu-modal"]:active,
       a[href="personnel.html"]:active {
-        transform: translateY(5px) !important;
-        box-shadow: 0 1px 0 #cbd5e1 !important;
+        transform: translateY(4px) !important;
+        box-shadow: 0 1px 0 #fed7aa !important;
       }
       @media (hover: hover) {
         a[href="quiz.html"]:hover {
           transform: translateY(-2px) !important;
+        }
+        button[onclick*="menu-modal"]:hover,
+        a[href="personnel.html"]:hover {
+          transform: translateY(-1px) !important;
         }
       }
 
@@ -579,7 +579,12 @@
           0 8px 18px rgba(154, 52, 18, 0.2);
       }
       a[href="quiz.html"] {
-        background: linear-gradient(135deg, #fb923c 0%, #f97316 58%, #ea580c 100%);
+        background: linear-gradient(
+          135deg,
+          #fb923c 0%,
+          #f97316 58%,
+          #ea580c 100%
+        );
         box-shadow:
           0 5px 0 #c2410c,
           0 12px 24px rgba(194, 65, 12, 0.26) !important;
@@ -590,7 +595,7 @@
         border-color: #fed7aa;
       }
       button[onclick*="menu-modal"] {
-        color: #c2410c;
+        color: #ea580c;
       }
       .card3d {
         box-shadow:
@@ -603,7 +608,12 @@
       }
       #menu-card {
         max-width: 680px;
-        background: linear-gradient(160deg, #fff 0%, #fff 74%, #fff8f0 100%) !important;
+        background: linear-gradient(
+          160deg,
+          #fff 0%,
+          #fff 74%,
+          #fff8f0 100%
+        ) !important;
         border: 1px solid rgba(255, 255, 255, 0.9) !important;
         border-top: 4px solid #f97316 !important;
         border-radius: 26px 26px 0 0 !important;
@@ -652,7 +662,10 @@
         box-shadow:
           0 3px 0 #ffedd5,
           0 8px 18px rgba(124, 45, 18, 0.07) !important;
-        transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+        transition:
+          transform 140ms ease,
+          box-shadow 140ms ease,
+          border-color 140ms ease;
       }
       #menu-card > div.grid > a h3 {
         width: 100%;
@@ -747,11 +760,97 @@
         }
       }
     </style>
+
+    <!-- Firebase Cloud SDK -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        getDocs,
+        writeBatch,
+      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDxRlfiL80TUoeyQDk93PQ5A0W3e37PoSI",
+        authDomain: "elon-musk-c6fa9.firebaseapp.com",
+        projectId: "elon-musk-c6fa9",
+        storageBucket: "elon-musk-c6fa9.firebasestorage.app",
+        messagingSenderId: "609890115150",
+        appId: "1:609890115150:web:428937710422523698ed1f",
+        measurementId: "G-WTHXDEWJMR",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      // ฟังก์ชันบันทึกข้อมูลแก้ไขโปรไฟล์ไปยัง LocalStorage และ Firebase Leaderboard
+      window.saveEditedProfile = async function () {
+        const fn = document.getElementById("edit-firstname-input").value.trim();
+        const ln = document.getElementById("edit-lastname-input").value.trim();
+        const sch = document.getElementById("edit-school-input").value.trim();
+
+        if (!fn || !ln) {
+          showToast("กรุณากรอกชื่อและนามสกุลให้ครบถ้วน", true);
+          return;
+        }
+
+        const oldFn = localStorage.getItem("cpe_firstname") || "";
+        const oldLn = localStorage.getItem("cpe_lastname") || "";
+        const oldFullName = `${oldFn} ${oldLn}`.trim();
+        const newFullName = `${fn} ${ln}`.trim();
+
+        const saveBtn = document.getElementById("btn-save-profile");
+        if (saveBtn) {
+          saveBtn.disabled = true;
+          saveBtn.innerText = "⏳ กำลังบันทึก...";
+        }
+
+        try {
+          // 1. อัปเดตข้อมูลใน Firebase Firestore (คอลเลกชัน leaderboard)
+          if (oldFullName) {
+            const leaderboardRef = collection(db, "leaderboard");
+            const q = query(leaderboardRef, where("name", "==", oldFullName));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+              const batch = writeBatch(db);
+              querySnapshot.forEach((docSnap) => {
+                batch.update(docSnap.ref, {
+                  name: newFullName,
+                  school: sch,
+                });
+              });
+              await batch.commit();
+            }
+          }
+
+          // 2. บันทึกลง LocalStorage
+          localStorage.setItem("cpe_firstname", fn);
+          localStorage.setItem("cpe_lastname", ln);
+          localStorage.setItem("cpe_school", sch);
+
+          updateNavUserUI();
+          closeEditProfileModal();
+          showToast("แก้ไขข้อมูลเรียบร้อยแล้ว!");
+        } catch (error) {
+          console.error("Firebase update error:", error);
+          showToast("เกิดข้อผิดพลาดในการอัปเดตข้อมูลบน Cloud", true);
+        } finally {
+          if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerText = "💾 บันทึกข้อมูล";
+          }
+        }
+      };
+    </script>
   </head>
   <body
     class="font-sans antialiased text-slate-800 min-h-screen relative bg-white overflow-x-hidden flex flex-col justify-between pb-20 sm:pb-6"
   >
-    <!-- ⚡ Toast Popup Notification (โทนส้ม-ขาว สไตล์โมเดิร์น) -->
+    <!-- Toast Popup Notification -->
     <div
       id="custom-toast"
       class="fixed top-5 left-1/2 -translate-x-1/2 z-50 hidden transition-all duration-300 ease-out transform -translate-y-5 opacity-0 pointer-events-none"
@@ -975,23 +1074,23 @@
         </h1>
       </div>
 
-      <!-- Action Buttons -->
+      <!-- Action Buttons (ปรับดีไซน์และเงาของปุ่มคู่ให้เท่ากันเรียบร้อย) -->
       <div class="w-full space-y-2 sm:space-y-3 pt-0.5">
-        <div class="grid grid-cols-2 gap-2">
+        <div class="grid grid-cols-2 gap-2.5 items-stretch">
           <button
             onclick="
               document.getElementById('menu-modal').classList.remove('hidden')
             "
-            class="w-full min-h-[46px] bg-white/95 backdrop-blur-md text-orange-600 border-2 border-orange-400 py-2.5 px-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1 hover:bg-orange-50 active:scale-95 transition-all shadow-sm cursor-pointer"
+            class="w-full min-h-[48px] bg-white/95 backdrop-blur-md text-orange-600 border-2 border-orange-300 py-2.5 px-3 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1 hover:bg-orange-50 active:scale-95 transition-all shadow-sm cursor-pointer"
           >
-            <span> คำแนะนำสาขา</span>
+            <span>คำแนะนำสาขา</span>
           </button>
 
           <a
             href="personnel.html"
-            class="w-full min-h-[46px] bg-white/95 backdrop-blur-md text-slate-800 border-2 border-slate-300 py-2.5 px-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1 hover:bg-slate-50 active:scale-95 transition-all shadow-sm"
+            class="w-full min-h-[48px] bg-white/95 backdrop-blur-md text-orange-600 border-2 border-orange-300 py-2.5 px-3 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1 hover:bg-orange-50 active:scale-95 transition-all shadow-sm cursor-pointer"
           >
-            <span> บุคลากร</span>
+            <span>บุคลากร</span>
           </a>
         </div>
 
@@ -1434,6 +1533,7 @@
 
         <div class="flex gap-2">
           <button
+            id="btn-save-profile"
             onclick="saveEditedProfile()"
             class="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold py-2.5 rounded-xl text-xs shadow-md active:scale-95 transition cursor-pointer"
           >
@@ -1660,25 +1760,6 @@
 
       function closeEditProfileModal() {
         document.getElementById("edit-profile-modal").classList.add("hidden");
-      }
-
-      function saveEditedProfile() {
-        const fn = document.getElementById("edit-firstname-input").value.trim();
-        const ln = document.getElementById("edit-lastname-input").value.trim();
-        const sch = document.getElementById("edit-school-input").value.trim();
-
-        if (!fn || !ln) {
-          showToast("กรุณากรอกชื่อและนามสกุลให้ครบถ้วน", true);
-          return;
-        }
-
-        localStorage.setItem("cpe_firstname", fn);
-        localStorage.setItem("cpe_lastname", ln);
-        localStorage.setItem("cpe_school", sch);
-
-        updateNavUserUI();
-        closeEditProfileModal();
-        showToast("แก้ไขข้อมูลเรียบร้อยแล้ว!");
       }
 
       function setupSwipeToClose(cardId, closeCallback) {
