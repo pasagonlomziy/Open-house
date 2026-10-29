@@ -1,315 +1,919 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ผู้ดูแลระบบ (Admin) - CPE Open House</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CPE Open House - Live Dashboard Monitor</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Firebase SDK (Firestore v10) -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        getDocs,
+        deleteDoc,
+        doc,
+      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDxRlfiL80TUoeyQDk93PQ5A0W3e37PoSI",
-            authDomain: "elon-musk-c6fa9.firebaseapp.com",
-            projectId: "elon-musk-c6fa9",
-            storageBucket: "elon-musk-c6fa9.firebasestorage.app",
-            messagingSenderId: "609890115150",
-            appId: "1:609890115150:web:428937710422523698ed1f",
-            measurementId: "G-WTHXDEWJMR"
-        };
+      const firebaseConfig = {
+        apiKey: "AIzaSyDxRlfiL80TUoeyQDk93PQ5A0W3e37PoSI",
+        authDomain: "elon-musk-c6fa9.firebaseapp.com",
+        projectId: "elon-musk-c6fa9",
+        storageBucket: "elon-musk-c6fa9.firebasestorage.app",
+        messagingSenderId: "609890115150",
+        appId: "1:609890115150:web:428937710422523698ed1f",
+        measurementId: "G-WTHXDEWJMR",
+      };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
 
-        // ตัวแปรเก็บสถานะการเรียงลำดับ (ค่าเริ่มต้น: วันที่ล่าสุดขึ้นก่อน)
-        let currentSortField = 'date';
-        let currentSortOrder = 'desc';
+      window.loginData = [];
+      window.quizRecentData = [];
+      window.quizTopData = [];
+      window.isAdminMode = false;
+      window.selectedDayFilter = "all"; // 'all' | '5' | '6'
+      window.pendingAuthAction = null; // เก็บ Callback สำหรับ Modal รหัสผ่าน
+      window.pendingConfirmCallback = null; // เก็บ Callback สำหรับ Modal ยืนยันเตือนภัย (แดง-ขาว)
 
-        // 🗑️ ฟังก์ชันลบข้อมูลรายชื่อรายบุคคล
-        window.deleteSingleLog = async function(docId, name) {
-            if (!confirm(`⚠️ คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลของ "${name}" ?`)) return;
+      // 📅 ฟังก์ชันสลับการกรองวัน (ทั้งหมด / วันที่ 5 / วันที่ 6)
+      window.setDayFilter = function (day) {
+        window.selectedDayFilter = day;
 
-            try {
-                await deleteDoc(doc(db, "leaderboard", docId));
-                window.fetchLogs(); // รีเฟรชตารางหลังลบสำเร็จ
-            } catch (e) {
-                console.error(e);
-                alert("❌ เกิดข้อผิดพลาดในการลบ: " + e.message);
-            }
-        };
-
-        // 📊 ฟังก์ชันคำนวณคะแนน
-        function getScoreVal(item) {
-            if (item.correctTotal !== undefined) return Number(item.correctTotal);
-            if (item.score !== undefined) return Math.floor(Number(item.score) / 100);
-            return 0;
-        }
-
-        // ⏱️ ฟังก์ชันแปลงวันที่เพื่อเปรียบเทียบเวลา
-        function getDateVal(item) {
-            if (item.createdAt) {
-                if (item.createdAt.seconds) return item.createdAt.seconds;
-                if (item.createdAt instanceof Date) return item.createdAt.getTime();
-            }
-            if (item.date) {
-                const parts = String(item.date).trim().split(' ');
-                if (parts.length === 2) {
-                    const d = parts[0].split('/');
-                    const t = parts[1].split(':');
-                    if (d.length === 3 && t.length === 2) {
-                        return Number(`${d[2]}${d[1].padStart(2,'0')}${d[0].padStart(2,'0')}${t[0].padStart(2,'0')}${t[1].padStart(2,'0')}`);
-                    }
-                }
-            }
-            return 0;
-        }
-
-        // 🔄 ฟังก์ชันสลับการเรียงลำดับเมื่อกดหัวตาราง
-        window.sortBy = function(field) {
-            if (currentSortField === field) {
-                currentSortOrder = (currentSortOrder === 'desc') ? 'asc' : 'desc';
+        ["all", "5", "6"].forEach((d) => {
+          const btn = document.getElementById(`filter-btn-${d}`);
+          if (btn) {
+            if (d === day) {
+              btn.className =
+                "px-4 py-2 rounded-xl font-black text-xs sm:text-sm bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg border border-orange-400 cursor-pointer transition-all active:scale-95";
             } else {
-                currentSortField = field;
-                currentSortOrder = 'desc'; // ค่าเริ่มต้นเมื่อเปลี่ยนหัวข้อ ให้เรียงจากมากไปน้อย/ล่าสุดไปเก่าสุด
+              btn.className =
+                "px-4 py-2 rounded-xl font-bold text-xs sm:text-sm bg-slate-800/90 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700 cursor-pointer transition-all active:scale-95";
             }
-            window.renderTable();
+          }
+        });
+
+        window.renderAllTables();
+      };
+
+      // 🔍 ฟังก์ชันดึงเลขวันที่จาก Record
+      function getItemDay(item) {
+        if (item.createdAt) {
+          let d;
+          if (item.createdAt.seconds) {
+            d = new Date(item.createdAt.seconds * 1000);
+          } else if (item.createdAt instanceof Date) {
+            d = item.createdAt;
+          }
+          if (d) return d.getDate();
+        }
+
+        const dateStr = item.date || item.loginTime || "";
+        if (dateStr) {
+          const parts = dateStr.trim().split(" ")[0].split("/");
+          if (parts.length >= 1) {
+            const dayNum = parseInt(parts[0], 10);
+            if (!isNaN(dayNum)) return dayNum;
+          }
+        }
+        return null;
+      }
+
+      // 🎯 กรองลิสต์ข้อมูลตามวันที่เลือก
+      function filterListByDay(list) {
+        if (window.selectedDayFilter === "all") return list;
+        const targetDay = parseInt(window.selectedDayFilter, 10);
+        return list.filter((item) => getItemDay(item) === targetDay);
+      }
+
+      // 🔄 สลับโหมด Admin
+      window.toggleAdminMode = function () {
+        window.isAdminMode = !window.isAdminMode;
+        const btn = document.getElementById("toggle-mode-btn");
+        const adminControls = document.getElementById("admin-controls");
+
+        if (window.isAdminMode) {
+          btn.innerHTML = "🔓 โหมด Admin (เปิดอยู่)";
+          btn.className =
+            "px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-900/40 animate-bounce transition cursor-pointer border border-purple-400";
+          adminControls.classList.remove("hidden");
+        } else {
+          btn.innerHTML = "⚙️ จัดการข้อมูล (Admin)";
+          btn.className =
+            "px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 transition cursor-pointer";
+          adminControls.classList.add("hidden");
+        }
+
+        window.renderAllTables();
+      };
+
+      // 💜 เปิด Modal กรอกรหัสผ่านโทนม่วง-ขาว
+      window.openCustomAuthModal = function (
+        title,
+        subtitle,
+        correctPassword,
+        successCallback,
+      ) {
+        const modal = document.getElementById("auth-modal");
+        const titleEl = document.getElementById("auth-modal-title");
+        const subTitleEl = document.getElementById("auth-modal-subtitle");
+        const inputEl = document.getElementById("auth-password-input");
+        const errorEl = document.getElementById("auth-error-msg");
+
+        titleEl.innerText = title;
+        subTitleEl.innerText = subtitle;
+        inputEl.value = "";
+        errorEl.classList.add("hidden");
+
+        modal.style.display = "flex";
+        setTimeout(() => inputEl.focus(), 100);
+
+        window.pendingAuthAction = {
+          correctPassword: correctPassword,
+          action: successCallback,
         };
+      };
 
-        // 🎨 ฟังก์ชันวาดตารางและอัปเดตลูกศรสถานะ
-        window.renderTable = function() {
-            if (!window.currentLogs || window.currentLogs.length === 0) return;
+      // ✖️ ปิด Modal กรอกรหัสผ่าน
+      window.closeCustomAuthModal = function () {
+        document.getElementById("auth-modal").style.display = "none";
+        window.pendingAuthAction = null;
+      };
 
-            // คัดลอกและจัดเรียงข้อมูล
-            let sorted = [...window.currentLogs];
-            sorted.sort((a, b) => {
-                let valA = currentSortField === 'score' ? getScoreVal(a) : getDateVal(a);
-                let valB = currentSortField === 'score' ? getScoreVal(b) : getDateVal(b);
+      // ✅ ตรวจสอบรหัสผ่านใน Modal
+      window.submitCustomAuth = function () {
+        if (!window.pendingAuthAction) return;
 
-                if (valA < valB) return currentSortOrder === 'asc' ? -1 : 1;
-                if (valA > valB) return currentSortOrder === 'asc' ? 1 : -1;
-                return 0;
-            });
+        const inputVal = document.getElementById("auth-password-input").value;
+        const errorEl = document.getElementById("auth-error-msg");
 
-            // อัปเดตลูกศรบนหัวตาราง
-            const scoreIcon = currentSortField === 'score' ? (currentSortOrder === 'desc' ? ' ⬇️' : ' ⬆️') : ' ↕️';
-            const dateIcon = currentSortField === 'date' ? (currentSortOrder === 'desc' ? ' ⬇️ (ล่าสุด)' : ' ⬆️ (เก่าสุด)') : ' ↕️';
+        if (inputVal === window.pendingAuthAction.correctPassword) {
+          const actionToRun = window.pendingAuthAction.action;
+          window.closeCustomAuthModal();
+          actionToRun();
+        } else {
+          errorEl.innerText = "❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง";
+          errorEl.classList.remove("hidden");
+          document.getElementById("auth-password-input").focus();
+        }
+      };
 
-            document.getElementById('th-score').innerHTML = `คะแนน ${scoreIcon}`;
-            document.getElementById('th-date').innerHTML = `วันที่ทำรายการ ${dateIcon}`;
+      // 🔴 เปิด Modal ยืนยันเตือนภัยสไตล์ แดง-ขาว (Custom Red-White Confirm)
+      window.openConfirmModal = function (title, message, onConfirmCallback) {
+        const modal = document.getElementById("confirm-modal");
+        document.getElementById("confirm-modal-title").innerText = title;
+        document.getElementById("confirm-modal-msg").innerHTML = message;
 
-            // แสดงผลลงในตาราง
-            const tbody = document.getElementById('log-table-body');
-            tbody.innerHTML = '';
-            sorted.forEach((item, idx) => {
-                const tr = document.createElement('tr');
-                tr.className = 'border-b border-slate-100 hover:bg-amber-50/40 text-xs sm:text-sm text-slate-700 transition-colors';
-                const safeName = String(item.name || '-').replace(/'/g, "\\'");
-                const scoreVal = getScoreVal(item);
-                
-                tr.innerHTML = `
-                    <td class="py-2.5 px-3 text-center font-bold text-slate-400">${idx + 1}</td>
-                    <td class="py-2.5 px-3 font-semibold text-slate-800">${item.name || '-'}</td>
-                    <td class="py-2.5 px-3 text-slate-600">${item.school || '-'}</td>
-                    <td class="py-2.5 px-3 text-center font-bold text-orange-600">${scoreVal}/10</td>
-                    <td class="py-2.5 px-3 text-center text-slate-500 font-medium">${item.date || '-'}</td>
-                    <td class="py-2.5 px-3 text-center">
-                        <button onclick="deleteSingleLog('${item.id}', '${safeName}')" 
-                                class="bg-rose-500 hover:bg-rose-600 text-white font-bold px-2.5 py-1 rounded-lg text-xs shadow-sm active:scale-95 transition cursor-pointer">
-                            🗑️ ลบ
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        };
+        window.pendingConfirmCallback = onConfirmCallback;
+        modal.style.display = "flex";
+      };
 
-        // 1. ดึงข้อมูล Log รายชื่อและคะแนนจาก Cloud
-        window.fetchLogs = async function() {
-            const modal = document.getElementById('log-modal');
-            const tbody = document.getElementById('log-table-body');
-            
-            tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-amber-600 font-bold">⏳ กำลังโหลดข้อมูลจาก Cloud...</td></tr>';
-            modal.style.display = 'flex';
+      // ✖️ ปิด Modal ยืนยันเตือนภัย
+      window.closeConfirmModal = function (isConfirmed) {
+        document.getElementById("confirm-modal").style.display = "none";
+        if (isConfirmed && typeof window.pendingConfirmCallback === "function") {
+          window.pendingConfirmCallback();
+        }
+        window.pendingConfirmCallback = null;
+      };
 
-            try {
-                const querySnapshot = await getDocs(collection(db, "leaderboard"));
-                let logs = [];
-                querySnapshot.forEach((docSnap) => {
-                    logs.push({ id: docSnap.id, ...docSnap.data() });
-                });
-
-                if (logs.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-slate-400">ยังไม่มีข้อมูล Log ในระบบ</td></tr>';
-                    return;
+      // 🔑 1. ปุ่มรีเซ็ตบอร์ดคะแนน (รหัส: Solution)
+      window.resetLeaderboardWithAuth = function () {
+        window.openCustomAuthModal(
+          "🔄 รีเซ็ตบอร์ดคะแนน",
+          "กรุณากรอกรหัสผ่านเพื่อรีเซ็ตบอร์ดคะแนนทั้งหมดบน Cloud",
+          "Solution",
+          () => {
+            window.openConfirmModal(
+              "⚠️ ยืนยันการรีเซ็ตบอร์ดคะแนน",
+              "ยืนยันการรีเซ็ตบอร์ดคะแนนทั้งหมดบน Cloud?<br><span class='text-rose-600 font-extrabold'>ข้อมูลคะแนนทั้งหมดจะถูกลบอย่างถาวร!</span>",
+              async () => {
+                try {
+                  const querySnapshot = await getDocs(
+                    collection(db, "leaderboard"),
+                  );
+                  const deletePromises = [];
+                  querySnapshot.forEach((docSnap) => {
+                    deletePromises.push(
+                      deleteDoc(doc(db, "leaderboard", docSnap.id)),
+                    );
+                  });
+                  await Promise.all(deletePromises);
+                  localStorage.removeItem("cpe_quiz_lb_stack");
+                  alert("✅ รีเซ็ตบอร์ดคะแนนเรียบร้อยแล้ว!");
+                  window.fetchLogs();
+                } catch (e) {
+                  console.error(e);
+                  alert("❌ เกิดข้อผิดพลาดในการรีเซ็ต: " + e.message);
                 }
+              },
+            );
+          },
+        );
+      };
 
-                window.currentLogs = logs;
-                window.renderTable(); // วาดตารางครั้งแรกพร้อมเรียงลำดับ
-            } catch (e) {
-                console.error(e);
-                tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-red-500 font-bold">❌ เกิดข้อผิดพลาดในการดึงข้อมูล</td></tr>';
-            }
-        };
+      // 🔑 2. ปุ่ม Reset Log ทั้งหมด (รหัส: Axxc)
+      window.resetAllLogsWithAuth = function () {
+        window.openCustomAuthModal(
+          "💥 Reset Log ทั้งหมด",
+          "กรุณากรอกรหัสผ่านเพื่อล้างประวัติลงชื่อเข้าใช้และบอร์ดคะแนนทั้งหมด",
+          "Axxc",
+          () => {
+            window.openConfirmModal(
+              "🚨 ยืนยันการล้าง Log ทั้งหมด",
+              "ยืนยันการล้าง Log ทั้งหมดบน Cloud (ประวัติลงชื่อเข้าใช้ + บอร์ดคะแนน)?<br><span class='text-rose-600 font-extrabold'>ข้อมูลทั้งหมดจะหายไปอย่างถาวร!</span>",
+              async () => {
+                try {
+                  const [lbSnap, usersSnap] = await Promise.all([
+                    getDocs(collection(db, "leaderboard")),
+                    getDocs(collection(db, "users")),
+                  ]);
 
-        // 2. ปลดล็อกสิทธิ์ทำแบบทดสอบ (เครื่องนี้)
-        window.unlockDevice = function() {
-            localStorage.removeItem("cpe_quiz_played");
-            const btn = document.getElementById("btn-unlock");
-            if (btn) {
-                btn.innerText = "✅ ปลดล็อกเครื่องนี้เรียบร้อยแล้ว!";
-                setTimeout(() => {
-                    btn.innerText = "🔓 ปลดล็อกสิทธิ์การทำแบบทดสอบ (เครื่องนี้)";
-                }, 2500);
-            }
-        };
+                  const deletePromises = [];
+                  lbSnap.forEach((docSnap) =>
+                    deletePromises.push(
+                      deleteDoc(doc(db, "leaderboard", docSnap.id)),
+                    ),
+                  );
+                  usersSnap.forEach((docSnap) =>
+                    deletePromises.push(deleteDoc(doc(db, "users", docSnap.id))),
+                  );
 
-        // 3. ล้างกระดานคะแนนทั้งหมด (Cloud)
-        window.clearLeaderboardCloud = async function() {
-            if (!confirm("⚠️ คุณต้องการล้างกระดานคะแนนทั้งหมดบน Cloud ใช่หรือไม่?")) return;
+                  await Promise.all(deletePromises);
+                  localStorage.clear();
+                  alert("✅ ล้าง Log ทั้งหมดในระบบเรียบร้อยแล้ว!");
+                  window.fetchLogs();
+                } catch (e) {
+                  console.error(e);
+                  alert("❌ เกิดข้อผิดพลาดในการรีเซ็ต: " + e.message);
+                }
+              },
+            );
+          },
+        );
+      };
 
+      // 🗑️ ฟังก์ชันลบข้อมูลทีละรายการ
+      window.deleteDataRow = function (colName, docId, personName) {
+        window.openConfirmModal(
+          "⚠️ ยืนยันการลบข้อมูล",
+          `คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลของ<br><span class='text-rose-600 font-extrabold'>"${personName}"</span> ?`,
+          async () => {
             try {
-                const querySnapshot = await getDocs(collection(db, "leaderboard"));
-                const deletePromises = [];
-                querySnapshot.forEach((docSnap) => {
-                    deletePromises.push(deleteDoc(doc(db, "leaderboard", docSnap.id)));
-                });
-                await Promise.all(deletePromises);
-                localStorage.removeItem("cpe_quiz_lb_stack");
-                
-                const tbody = document.getElementById('log-table-body');
-                if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-slate-400">ล้างข้อมูลสำเร็จแล้ว</td></tr>';
+              await deleteDoc(doc(db, colName, docId));
+              window.fetchLogs();
             } catch (e) {
-                console.error(e);
+              console.error(e);
+              alert("❌ เกิดข้อผิดพลาดในการลบ: " + e.message);
             }
-        };
+          },
+        );
+      };
 
-        // 4. ล้าง Log ทั้งหมด
-        window.clearUserLogsCloud = async function() {
-            if (!confirm("⚠️ คุณต้องการล้าง Log ทั้งหมดบน Cloud ใช่หรือไม่?")) return;
-            await window.clearLeaderboardCloud();
-        };
+      function getScoreVal(item) {
+        if (item.correctTotal !== undefined) return Number(item.correctTotal);
+        if (item.score !== undefined)
+          return Math.floor(Number(item.score) / 100);
+        return 0;
+      }
 
-        // 5. ส่งออกไฟล์ CSV
-        window.exportCSV = function() {
-            if (!window.currentLogs || window.currentLogs.length === 0) return;
-            
-            let csvContent = "data:text/csv;charset=utf-8,\uFEFFลำดับ,ชื่อ-นามสกุล,สังกัด/โรงเรียน,คะแนน,วันที่\n";
-            window.currentLogs.forEach((item, idx) => {
-                const name = `"${item.name || ''}"`;
-                const school = `"${item.school || ''}"`;
-                const score = getScoreVal(item);
-                const date = `"${item.date || ''}"`;
-                csvContent += `${idx + 1},${name},${school},${score},${date}\n`;
-            });
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `CPE_Quiz_Logs_${new Date().toISOString().slice(0,10)}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        };
+      function getDateVal(item) {
+        if (item.createdAt) {
+          if (item.createdAt.seconds) return item.createdAt.seconds;
+          if (item.createdAt instanceof Date) return item.createdAt.getTime();
+        }
+        if (item.date) {
+          const parts = String(item.date).trim().split(" ");
+          if (parts.length === 2) {
+            const d = parts[0].split("/");
+            const t = parts[1].split(":");
+            if (d.length === 3 && t.length === 2) {
+              return Number(
+                `${d[2]}${d[1].padStart(2, "0")}${d[0].padStart(2, "0")}${t[0].padStart(2, "0")}${t[1].padStart(2, "0")}`,
+              );
+            }
+          }
+        }
+        return 0;
+      }
+
+      // 🎨 ฟังก์ชันวาดตารางคะแนน
+      window.renderAllTables = function () {
+        const filteredLogin = filterListByDay(window.loginData);
+        const filteredTop = filterListByDay(window.quizTopData);
+        const filteredRecent = filterListByDay(window.quizRecentData);
+
+        // --- 1. ตารางประวัติลงชื่อเข้าใช้ ---
+        const tbodyLogin = document.getElementById("login-tbody");
+        document.getElementById("th-login-manage").style.display =
+          window.isAdminMode ? "table-cell" : "none";
+        tbodyLogin.innerHTML = "";
+
+        if (filteredLogin.length === 0) {
+          tbodyLogin.innerHTML = `<tr><td colspan="${window.isAdminMode ? 4 : 3}" class="py-12 text-center text-slate-400 font-bold text-base">ไม่พบข้อมูลในวันที่เลือก</td></tr>`;
+        } else {
+          filteredLogin.forEach((item, idx) => {
+            const name =
+              item.fullname ||
+              `${item.firstname || ""} ${item.lastname || ""}`.trim() ||
+              "-";
+            const safeName = String(name).replace(/'/g, "\\'");
+            const tr = document.createElement("tr");
+            tr.className =
+              "border-b border-slate-100 hover:bg-sky-50/50 transition-colors";
+            tr.innerHTML = `
+                        <td class="py-3.5 px-3 text-center font-bold text-slate-400 text-sm sm:text-base">${idx + 1}</td>
+                        <td class="py-3.5 px-3">
+                            <div class="text-base sm:text-xl font-black text-slate-800 leading-snug">${name}</div>
+                            <div class="text-xs sm:text-sm text-sky-700 font-bold">${item.school || "-"}</div>
+                        </td>
+                        <td class="py-3.5 px-3 text-center text-xs sm:text-sm font-semibold text-slate-500 whitespace-nowrap">${item.loginTime || "-"}</td>
+                        ${window.isAdminMode ? `<td class="py-3.5 px-2 text-center"><button onclick="deleteDataRow('users', '${item.id}', '${safeName}')" class="bg-rose-500 hover:bg-rose-600 text-white font-bold px-2.5 py-1 rounded-lg text-xs shadow">ลบ</button></td>` : ""}
+                    `;
+            tbodyLogin.appendChild(tr);
+          });
+        }
+
+        // --- 2. ตารางอันดับคะแนนสูงสุด (ตรงกลาง) ---
+        const tbodyTop = document.getElementById("top-tbody");
+        document.getElementById("th-top-manage").style.display =
+          window.isAdminMode ? "table-cell" : "none";
+        tbodyTop.innerHTML = "";
+
+        if (filteredTop.length === 0) {
+          tbodyTop.innerHTML = `<tr><td colspan="${window.isAdminMode ? 5 : 4}" class="py-12 text-center text-slate-400 font-bold text-base">ไม่พบข้อมูลในวันที่เลือก</td></tr>`;
+        } else {
+          filteredTop.forEach((item, idx) => {
+            const safeName = String(item.name || "-").replace(/'/g, "\\'");
+            const scoreVal = getScoreVal(item);
+
+            let rankBadge = `<span class="font-black text-slate-400 text-base sm:text-lg">${idx + 1}</span>`;
+            let rowBg = "hover:bg-amber-50/50";
+
+            if (idx === 0) {
+              rankBadge = `<div class="w-9 h-9 rounded-2xl bg-amber-400 text-white font-black text-xl flex items-center justify-center shadow-lg mx-auto">1</div>`;
+              rowBg = "bg-amber-100/60 font-bold border-l-4 border-l-amber-500";
+            } else if (idx === 1) {
+              rankBadge = `<div class="w-9 h-9 rounded-2xl bg-slate-300 text-slate-800 font-black text-xl flex items-center justify-center shadow-md mx-auto">2</div>`;
+              rowBg = "bg-slate-100/70 font-bold border-l-4 border-l-slate-400";
+            } else if (idx === 2) {
+              rankBadge = `<div class="w-9 h-9 rounded-2xl bg-amber-600 text-white font-black text-xl flex items-center justify-center shadow-md mx-auto">3</div>`;
+              rowBg =
+                "bg-orange-100/40 font-bold border-l-4 border-l-amber-600";
+            }
+
+            const tr = document.createElement("tr");
+            tr.className = `border-b border-slate-100 transition-colors ${rowBg}`;
+            tr.innerHTML = `
+                        <td class="py-3.5 px-3 text-center">${rankBadge}</td>
+                        <td class="py-3.5 px-3">
+                            <div class="text-base sm:text-xl font-black text-slate-800 leading-snug">${item.name || "-"}</div>
+                            <div class="text-xs sm:text-sm text-amber-700 font-bold">${item.school || "-"}</div>
+                        </td>
+                        <td class="py-3.5 px-3 text-center whitespace-nowrap">
+                            <span class="inline-flex items-baseline bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black text-2xl sm:text-3xl px-4 py-1.5 rounded-2xl shadow-lg border border-emerald-400">
+                                ${scoreVal}<span class="text-xs font-bold text-emerald-100 ml-0.5">/10</span>
+                            </span>
+                        </td>
+                        <td class="py-3.5 px-3 text-center text-xs sm:text-sm font-semibold text-slate-500 whitespace-nowrap">${item.date || "-"}</td>
+                        ${window.isAdminMode ? `<td class="py-3.5 px-2 text-center"><button onclick="deleteDataRow('leaderboard', '${item.id}', '${safeName}')" class="bg-rose-500 hover:bg-rose-600 text-white font-bold px-2.5 py-1 rounded-lg text-xs shadow">ลบ</button></td>` : ""}
+                    `;
+            tbodyTop.appendChild(tr);
+          });
+        }
+
+        // --- 3. ตารางทำ Quiz ล่าสุด (ขวา) ---
+        const tbodyRecent = document.getElementById("recent-tbody");
+        document.getElementById("th-recent-manage").style.display =
+          window.isAdminMode ? "table-cell" : "none";
+        tbodyRecent.innerHTML = "";
+
+        if (filteredRecent.length === 0) {
+          tbodyRecent.innerHTML = `<tr><td colspan="${window.isAdminMode ? 5 : 4}" class="py-12 text-center text-slate-400 font-bold text-base">ไม่พบข้อมูลในวันที่เลือก</td></tr>`;
+        } else {
+          filteredRecent.forEach((item, idx) => {
+            const safeName = String(item.name || "-").replace(/'/g, "\\'");
+            const scoreVal = getScoreVal(item);
+            const tr = document.createElement("tr");
+            tr.className =
+              "border-b border-slate-100 hover:bg-orange-50/50 transition-colors";
+            tr.innerHTML = `
+                        <td class="py-3.5 px-3 text-center font-bold text-slate-400 text-sm sm:text-base">${idx + 1}</td>
+                        <td class="py-3.5 px-3">
+                            <div class="text-base sm:text-xl font-black text-slate-800 leading-snug">${item.name || "-"}</div>
+                            <div class="text-xs sm:text-sm text-orange-600 font-bold">${item.school || "-"}</div>
+                        </td>
+                        <td class="py-3.5 px-3 text-center whitespace-nowrap">
+                            <span class="inline-flex items-baseline bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black text-xl sm:text-3xl px-3.5 py-1.5 rounded-2xl shadow-md border border-orange-400">
+                                ${scoreVal}<span class="text-xs font-bold text-orange-100 ml-0.5">/10</span>
+                            </span>
+                        </td>
+                        <td class="py-3.5 px-3 text-center text-xs sm:text-sm font-semibold text-slate-500 whitespace-nowrap">${item.date || "-"}</td>
+                        ${window.isAdminMode ? `<td class="py-3.5 px-2 text-center"><button onclick="deleteDataRow('leaderboard', '${item.id}', '${safeName}')" class="bg-rose-500 hover:bg-rose-600 text-white font-bold px-2.5 py-1 rounded-lg text-xs shadow">ลบ</button></td>` : ""}
+                    `;
+            tbodyRecent.appendChild(tr);
+          });
+        }
+      };
+
+      // 1. ดึงข้อมูลอัตโนมัติ
+      window.fetchLogs = async function () {
+        try {
+          const [usersSnap, lbSnap] = await Promise.all([
+            getDocs(collection(db, "users")),
+            getDocs(collection(db, "leaderboard")),
+          ]);
+
+          let users = [];
+          usersSnap.forEach((docSnap) =>
+            users.push({ id: docSnap.id, ...docSnap.data() }),
+          );
+          users.sort((a, b) => getDateVal(b) - getDateVal(a));
+          window.loginData = users;
+
+          let quizList = [];
+          lbSnap.forEach((docSnap) =>
+            quizList.push({ id: docSnap.id, ...docSnap.data() }),
+          );
+
+          let recentList = [...quizList];
+          recentList.sort((a, b) => getDateVal(b) - getDateVal(a));
+          window.quizRecentData = recentList;
+
+          let topList = [...quizList];
+          topList.sort((a, b) => {
+            let scoreA = getScoreVal(a);
+            let scoreB = getScoreVal(b);
+            if (scoreB !== scoreA) return scoreB - scoreA;
+            return getDateVal(b) - getDateVal(a);
+          });
+          window.quizTopData = topList;
+
+          window.renderAllTables();
+        } catch (e) {
+          console.error("Fetch Error:", e);
+        }
+      };
+
+      // 2. ส่งออกไฟล์ CSV
+      window.exportCSV = function () {
+        let csvContent =
+          "data:text/csv;charset=utf-8,\uFEFF[1. ประวัติการลงชื่อเข้าใช้]\nลำดับ,ชื่อ-นามสกุล,สังกัด,เวลาลงชื่อ\n";
+        window.loginData.forEach((item, idx) => {
+          csvContent += `${idx + 1},"${item.fullname || item.name || ""}","${item.school || ""}","${item.loginTime || ""}"\n`;
+        });
+
+        csvContent +=
+          "\n[2. อันดับคะแนนสูงสุด]\nลำดับ,ชื่อ-นามสกุล,สังกัด,คะแนน,วันที่\n";
+        window.quizTopData.forEach((item, idx) => {
+          csvContent += `${idx + 1},"${item.name || ""}","${item.school || ""}",${getScoreVal(item)},"${item.date || ""}"\n`;
+        });
+
+        csvContent +=
+          "\n[3. ทำ Quiz ล่าสุด]\nลำดับ,ชื่อ-นามสกุล,สังกัด,คะแนน,วันที่\n";
+        window.quizRecentData.forEach((item, idx) => {
+          csvContent += `${idx + 1},"${item.name || ""}","${item.school || ""}",${getScoreVal(item)},"${item.date || ""}"\n`;
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute(
+          "download",
+          `CPE_OpenHouse_Data_${new Date().toISOString().slice(0, 10)}.csv`,
+        );
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+
+      // รีเฟรชข้อมูลอัตโนมัติทุกๆ 8 วินาที
+      window.addEventListener("DOMContentLoaded", () => {
+        window.fetchLogs();
+        setInterval(window.fetchLogs, 8000);
+      });
     </script>
 
     <style>
-        body {
-            font-family: 'Kanit', sans-serif;
-            background-color: #0f172a;
-        }
+      body {
+        font-family: "Kanit", sans-serif;
+        background: #0f172a;
+      }
+      .custom-scroll::-webkit-scrollbar {
+        width: 8px;
+      }
+      .custom-scroll::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+      .custom-scroll::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+      }
     </style>
-</head>
-<body class="min-h-screen flex items-center justify-center p-4">
+  </head>
+  <body
+    class="min-h-screen text-slate-800 p-4 sm:p-6 flex flex-col justify-between relative"
+  >
+    <!-- Header ด้านบนสำหรับจอทีวี / มอนิเตอร์ -->
+    <header
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 bg-slate-900/90 p-4 sm:px-6 rounded-3xl border border-slate-800 shadow-2xl"
+    >
+      <div class="flex items-center gap-3">
+        <div
+          class="w-12 h-12 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 flex items-center justify-center text-2xl font-black text-white shadow-lg shadow-purple-900/30"
+        >
+          CPE
+        </div>
+        <div>
+          <h1
+            class="text-xl sm:text-2xl font-black text-white tracking-wide flex items-center gap-3"
+          >
+            OPEN HOUSE LIVE DASHBOARD
+            <span
+              class="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-3 py-1 rounded-full font-bold animate-pulse"
+              >● LIVE UPDATE</span
+            >
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-400 font-medium">
+            ศูนย์แสดงข้อมูลลงชื่อเข้าใช้และอันดับคะแนนแบบทดสอบเรียลไทม์
+          </p>
+        </div>
+      </div>
 
-    <!-- กล่องเมนูหลัก ผู้ดูแลระบบ -->
-    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border-t-8 border-orange-500 text-center relative">
-        
-        <div class="text-3xl mb-1">⚙️</div>
-        <h1 class="text-xl sm:text-2xl font-black text-slate-800">ผู้ดูแลระบบ (Admin)</h1>
-        <p class="text-xs text-slate-500 mb-6 font-medium">ศูนย์ควบคุมและแก้ข้อมูล CPE Open House</p>
+      <!-- ตัวกรองแยกวันที่ (วันที 5 / วันที่ 6 / ทั้งหมด) -->
+      <div
+        class="flex items-center gap-2 bg-slate-950/80 p-1.5 rounded-2xl border border-slate-800"
+      >
+        <button
+          id="filter-btn-all"
+          onclick="setDayFilter('all')"
+          class="px-4 py-2 rounded-xl font-black text-xs sm:text-sm bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg border border-orange-400 cursor-pointer transition-all active:scale-95"
+        >
+          🌐 ทั้งหมด
+        </button>
+        <button
+          id="filter-btn-5"
+          onclick="setDayFilter('5')"
+          class="px-4 py-2 rounded-xl font-bold text-xs sm:text-sm bg-slate-800/90 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700 cursor-pointer transition-all active:scale-95"
+        >
+          📅 วันที่ 5 พ.ย.
+        </button>
+        <button
+          id="filter-btn-6"
+          onclick="setDayFilter('6')"
+          class="px-4 py-2 rounded-xl font-bold text-xs sm:text-sm bg-slate-800/90 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700 cursor-pointer transition-all active:scale-95"
+        >
+          📅 วันที่ 6 พ.ย.
+        </button>
+      </div>
 
-        <div class="space-y-3">
-            <!-- ปุ่มที่ 1 -->
-            <button onclick="fetchLogs()" class="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold py-3 px-4 rounded-xl shadow-md active:scale-95 transition-all text-xs sm:text-sm flex items-center justify-center gap-2">
-                📄 ดู Log รายชื่อและรายละเอียดคะแนน
-            </button>
+      <!-- เมนูสำหรับผู้ดูแลระบบ -->
+      <div class="flex items-center gap-2">
+        <button
+          id="toggle-mode-btn"
+          onclick="toggleAdminMode()"
+          class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 transition cursor-pointer"
+        >
+          ⚙️ จัดการข้อมูล (Admin)
+        </button>
 
-            <!-- ปุ่มที่ 2 -->
-            <button id="btn-unlock" onclick="unlockDevice()" class="w-full bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700 text-white font-bold py-3 px-4 rounded-xl shadow-md active:scale-95 transition-all text-xs sm:text-sm flex items-center justify-center gap-2">
-                🔓 ปลดล็อกสิทธิ์การทำแบบทดสอบ (เครื่องนี้)
-            </button>
+        <!-- เมนูควบคุมขยายเพิ่มเติมเมื่ออยู่ในโหมด Admin -->
+        <div
+          id="admin-controls"
+          class="hidden flex items-center gap-2 flex-wrap"
+        >
+          <!-- ปุ่ม 1: รีเซ็ตบอร์ด (รหัส: Solution) -->
+          <button
+            onclick="resetLeaderboardWithAuth()"
+            class="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-900/30 transition cursor-pointer border border-purple-400"
+          >
+            🔄 รีเซ็ตบอร์ดคะแนน
+          </button>
 
-            <!-- ปุ่มที่ 3 -->
-            <button onclick="clearLeaderboardCloud()" class="w-full bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 text-white font-bold py-3 px-4 rounded-xl shadow-md active:scale-95 transition-all text-xs sm:text-sm flex items-center justify-center gap-2">
-                ❓ ล้างกระดานคะแนนทั้งหมด (Cloud)
-            </button>
+          <!-- ปุ่ม 2: Reset Log ทั้งหมด (รหัส: Axxc) -->
+          <button
+            onclick="resetAllLogsWithAuth()"
+            class="px-3 py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs shadow transition cursor-pointer"
+          >
+            💥 Reset Log ทั้งหมด
+          </button>
 
-            <!-- ปุ่มที่ 4 -->
-            <button onclick="clearUserLogsCloud()" class="w-full bg-gradient-to-r from-rose-800 to-red-900 hover:from-rose-900 hover:to-red-950 text-white font-bold py-3 px-4 rounded-xl shadow-md active:scale-95 transition-all text-xs sm:text-sm flex items-center justify-center gap-2">
-                🗑️ ล้าง Log รายชื่อผู้ใช้งานทั้งหมด (Cloud)
-            </button>
+          <button
+            onclick="exportCSV()"
+            class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition cursor-pointer"
+          >
+            📥 ส่งออก CSV
+          </button>
+          <a
+            href="index.html"
+            class="px-3 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs transition"
+          >
+            🏠 หน้าหลัก
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- ส่วนตารางแสดงผล 3 คอลัมน์สำหรับจอมอนิเตอร์ -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <!-- ช่องที่ 1 (ซ้าย): ประวัติการลงชื่อเข้าใช้ -->
+      <div
+        class="bg-white rounded-3xl border-2 border-sky-400 p-4 sm:p-5 shadow-2xl flex flex-col h-[78vh] lg:h-[calc(100vh-140px)] overflow-hidden"
+      >
+        <div
+          class="flex items-center justify-between pb-3 mb-3 border-b-2 border-sky-100 shrink-0"
+        >
+          <h2
+            class="font-black text-slate-800 text-base sm:text-xl flex items-center gap-2.5"
+          >
+            <span
+              class="w-9 h-9 rounded-2xl bg-sky-100 text-sky-600 flex items-center justify-center text-xl shadow-sm"
+              >👥</span
+            >
+            ประวัติลงชื่อเข้าใช้
+          </h2>
+          <span
+            class="text-xs font-bold bg-sky-100 text-sky-700 px-3 py-1 rounded-full border border-sky-200"
+            >Users Login</span
+          >
         </div>
 
-        <div class="mt-6 pt-4 border-t border-slate-100 flex gap-2">
-            <a href="quiz.html" class="flex-1 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl hover:bg-slate-200 transition-colors text-xs flex items-center justify-center gap-1">
-                &larr; กลับหน้าแบบทดสอบ
-            </a>
-            <a href="index.html" class="flex-1 bg-slate-800 text-white font-bold py-2.5 rounded-xl hover:bg-slate-900 transition-colors text-xs flex items-center justify-center gap-1">
-                🏠 หน้าหลัก
-            </a>
+        <div
+          class="overflow-y-auto custom-scroll flex-grow rounded-2xl border border-slate-100 bg-white"
+        >
+          <table class="w-full text-left border-collapse">
+            <thead
+              class="bg-slate-100 text-slate-700 text-xs sm:text-sm font-black uppercase sticky top-0 border-b border-slate-200 z-10"
+            >
+              <tr>
+                <th class="py-3 px-3 text-center w-10">#</th>
+                <th class="py-3 px-3">ชื่อ-นามสกุล / สังกัด</th>
+                <th class="py-3 px-3 text-center">เวลาเข้าใช้</th>
+                <th
+                  id="th-login-manage"
+                  class="py-3 px-2 text-center"
+                  style="display: none"
+                >
+                  จัดการ
+                </th>
+              </tr>
+            </thead>
+            <tbody id="login-tbody">
+              <!-- Dynamic Injected -->
+            </tbody>
+          </table>
         </div>
+      </div>
+
+      <!-- ช่องที่ 2 (กลาง): อันดับคะแนนสูงสุด -->
+      <div
+        class="bg-white rounded-3xl border-2 border-amber-400 p-4 sm:p-5 shadow-2xl flex flex-col h-[78vh] lg:h-[calc(100vh-140px)] overflow-hidden"
+      >
+        <div
+          class="flex items-center justify-between pb-3 mb-3 border-b-2 border-amber-100 shrink-0"
+        >
+          <h2
+            class="font-black text-slate-800 text-base sm:text-xl flex items-center gap-2.5"
+          >
+            <span
+              class="w-9 h-9 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl shadow-sm"
+              >🏆</span
+            >
+            อันดับคะแนนสูงสุด
+          </h2>
+          <span
+            class="text-xs font-bold bg-amber-100 text-amber-800 px-3 py-1 rounded-full border border-amber-200"
+            >Top Scores</span
+          >
+        </div>
+
+        <div
+          class="overflow-y-auto custom-scroll flex-grow rounded-2xl border border-amber-100 bg-white"
+        >
+          <table class="w-full text-left border-collapse">
+            <thead
+              class="bg-amber-100/80 text-amber-900 text-xs sm:text-sm font-black uppercase sticky top-0 border-b border-amber-200 z-10"
+            >
+              <tr>
+                <th class="py-3 px-3 text-center w-12">อันดับ</th>
+                <th class="py-3 px-3">ชื่อ-นามสกุล / สังกัด</th>
+                <th class="py-3 px-3 text-center">คะแนน</th>
+                <th class="py-3 px-3 text-center">วันที่</th>
+                <th
+                  id="th-top-manage"
+                  class="py-3 px-2 text-center"
+                  style="display: none"
+                >
+                  จัดการ
+                </th>
+              </tr>
+            </thead>
+            <tbody id="top-tbody">
+              <!-- Dynamic Injected -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ช่องที่ 3 (ขวา): ทำ Quiz ล่าสุด -->
+      <div
+        class="bg-white rounded-3xl border-2 border-orange-400 p-4 sm:p-5 shadow-2xl flex flex-col h-[78vh] lg:h-[calc(100vh-140px)] overflow-hidden"
+      >
+        <div
+          class="flex items-center justify-between pb-3 mb-3 border-b-2 border-orange-100 shrink-0"
+        >
+          <h2
+            class="font-black text-slate-800 text-base sm:text-xl flex items-center gap-2.5"
+          >
+            <span
+              class="w-9 h-9 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center text-xl shadow-sm"
+              >⚡</span
+            >
+            ผู้ทำ Quiz ล่าสุด
+          </h2>
+          <span
+            class="text-xs font-bold bg-orange-100 text-orange-700 px-3 py-1 rounded-full border border-orange-200"
+            >Recent Quiz</span
+          >
+        </div>
+
+        <div
+          class="overflow-y-auto custom-scroll flex-grow rounded-2xl border border-slate-100 bg-white"
+        >
+          <table class="w-full text-left border-collapse">
+            <thead
+              class="bg-slate-100 text-slate-700 text-xs sm:text-sm font-black uppercase sticky top-0 border-b border-slate-200 z-10"
+            >
+              <tr>
+                <th class="py-3 px-3 text-center w-10">#</th>
+                <th class="py-3 px-3">ชื่อ-นามสกุล / สังกัด</th>
+                <th class="py-3 px-3 text-center">คะแนน</th>
+                <th class="py-3 px-3 text-center">วันที่</th>
+                <th
+                  id="th-recent-manage"
+                  class="py-3 px-2 text-center"
+                  style="display: none"
+                >
+                  จัดการ
+                </th>
+              </tr>
+            </thead>
+            <tbody id="recent-tbody">
+              <!-- Dynamic Injected -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- 💜 Modal ป๊อบอัพกรอกรหัสผ่านโทนม่วง-ขาว (Custom Purple Modal) -->
+    <div
+      id="auth-modal"
+      class="fixed inset-0 bg-slate-950/70 backdrop-blur-md hidden flex items-center justify-center p-4 z-50"
+    >
+      <div
+        class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl shadow-purple-950/40 border-2 border-purple-100 relative animate-in fade-in zoom-in duration-200"
+      >
+        <!-- หัวข้อ Modal ม่วงขาว -->
+        <div
+          class="bg-gradient-to-r from-purple-700 to-indigo-700 p-6 text-white text-center relative overflow-hidden"
+        >
+          <div
+            class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl"
+          ></div>
+          <div
+            class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-2xl mx-auto mb-2 border border-white/30 shadow-inner"
+          >
+            🔒
+          </div>
+          <h3
+            id="auth-modal-title"
+            class="font-black text-lg sm:text-xl tracking-wide"
+          >
+            ยืนยันสิทธิ์ผู้ดูแลระบบ
+          </h3>
+          <p
+            id="auth-modal-subtitle"
+            class="text-xs text-purple-100 mt-1 font-medium"
+          >
+            กรุณากรอกรหัสผ่านเพื่อดำเนินการต่อไป
+          </p>
+          <button
+            onclick="closeCustomAuthModal()"
+            class="absolute top-4 right-4 text-purple-200 hover:text-white text-2xl font-bold transition cursor-pointer"
+          >
+            &times;
+          </button>
+        </div>
+
+        <!-- ตัวแบบฟอร์ม Modal -->
+        <div class="p-6 bg-gradient-to-b from-purple-50/50 to-white">
+          <div class="mb-4">
+            <label class="block text-xs font-bold text-purple-900 mb-2"
+              >🔑 รหัสผ่านความปลอดภัย (Password)</label
+            >
+            <input
+              type="password"
+              id="auth-password-input"
+              onkeyup="if (event.key === 'Enter') submitCustomAuth();"
+              placeholder="••••••••"
+              class="w-full px-4 py-3 rounded-2xl border-2 border-purple-200 focus:border-purple-600 focus:ring-4 focus:ring-purple-100 outline-none text-slate-800 font-bold tracking-widest text-center text-lg bg-white shadow-sm transition-all"
+            />
+
+            <p
+              id="auth-error-msg"
+              class="text-xs font-bold text-rose-500 mt-2 text-center hidden animate-pulse"
+            >
+              ❌ รหัสผ่านไม่ถูกต้อง
+            </p>
+          </div>
+
+          <div class="flex gap-3 mt-6">
+            <button
+              onclick="closeCustomAuthModal()"
+              class="flex-1 py-3 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all cursor-pointer"
+            >
+              ยกเลิก
+            </button>
+            <button
+              onclick="submitCustomAuth()"
+              class="flex-1 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg shadow-purple-500/30 transition-all cursor-pointer active:scale-95"
+            >
+              ตกลง / ยืนยัน
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Modal แสดงตาราง Log พร้อมปุ่มเรียงลำดับหัวตาราง -->
-    <div id="log-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-40">
-        <div class="bg-white rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl border-t-8 border-amber-500">
-            <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                <h3 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
-                    📄 Log รายชื่อและคะแนนผู้เล่น (Cloud)
-                </h3>
-                <button onclick="document.getElementById('log-modal').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold px-2">&times;</button>
-            </div>
-            
-            <div class="p-4 overflow-y-auto flex-grow">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-100 text-slate-600 text-xs uppercase font-bold border-b border-slate-200">
-                            <th class="py-2.5 px-3 text-center w-12">#</th>
-                            <th class="py-2.5 px-3">ชื่อ-นามสกุล</th>
-                            <th class="py-2.5 px-3">สังกัด/โรงเรียน</th>
-                            
-                            <!-- ปุ่มกดเรียงคะแนน -->
-                            <th id="th-score" onclick="sortBy('score')" class="py-2.5 px-3 text-center cursor-pointer hover:bg-amber-100/60 select-none transition-colors rounded-t-lg text-orange-600" title="คลิกเพื่อเรียงลำดับคะแนน">
-                                คะแนน ↕️
-                            </th>
-                            
-                            <!-- ปุ่มกดเรียงวันที่ -->
-                            <th id="th-date" onclick="sortBy('date')" class="py-2.5 px-3 text-center cursor-pointer hover:bg-amber-100/60 select-none transition-colors rounded-t-lg" title="คลิกเพื่อเรียงตามเวลาที่ทำ">
-                                วันที่ทำรายการ ⬇️ (ล่าสุด)
-                            </th>
-                            
-                            <th class="py-2.5 px-3 text-center">จัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="log-table-body">
-                        <!-- โหลดข้อมูลแบบ Dynamic -->
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-between gap-2">
-                <button onclick="exportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-colors">
-                    📥 ส่งออกไฟล์ Excel (CSV)
-                </button>
-                <button onclick="document.getElementById('log-modal').style.display='none'" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-xl text-xs transition-colors">
-                    ปิดหน้าต่าง
-                </button>
-            </div>
+    <!-- 🔴 Modal ป๊อบอัพยืนยันเตือนภัยสไตล์ แดง-ขาว (Custom Red-White Confirm Modal) -->
+    <div
+      id="confirm-modal"
+      class="fixed inset-0 bg-slate-950/70 backdrop-blur-md hidden flex items-center justify-center p-4 z-50"
+    >
+      <div
+        class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl shadow-rose-950/30 border-2 border-rose-100 relative animate-in fade-in zoom-in duration-200"
+      >
+        <!-- หัวข้อ Modal แดง-ขาว -->
+        <div
+          class="bg-gradient-to-r from-rose-600 to-red-700 p-6 text-white text-center relative overflow-hidden"
+        >
+          <div
+            class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl"
+          ></div>
+          <div
+            class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-3xl mx-auto mb-2 border border-white/30 shadow-inner"
+          >
+            ⚠️
+          </div>
+          <h3
+            id="confirm-modal-title"
+            class="font-black text-lg sm:text-xl tracking-wide"
+          >
+            ยืนยันการลบข้อมูลถาวร
+          </h3>
+          <button
+            onclick="closeConfirmModal(false)"
+            class="absolute top-4 right-4 text-rose-200 hover:text-white text-2xl font-bold transition cursor-pointer"
+          >
+            &times;
+          </button>
         </div>
-    </div>
 
-</body>
+        <!-- เนื้อหาคำเตือน -->
+        <div class="p-6 text-center bg-gradient-to-b from-rose-50/40 to-white">
+          <p
+            id="confirm-modal-msg"
+            class="text-sm font-bold text-slate-700 leading-relaxed mb-6"
+          >
+            ยืนยันการรีเซ็ตบอร์ดคะแนนทั้งหมดบน Cloud? <br />
+            <span class="text-rose-600 font-extrabold"
+              >ข้อมูลคะแนนทั้งหมดจะถูกลบอย่างถาวร!</span
+            >
+          </p>
+
+          <div class="flex gap-3">
+            <button
+              onclick="closeConfirmModal(false)"
+              class="flex-1 py-3 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all cursor-pointer"
+            >
+              ยกเลิก
+            </button>
+            <button
+              onclick="closeConfirmModal(true)"
+              class="flex-1 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white shadow-lg shadow-rose-500/30 transition-all cursor-pointer active:scale-95"
+            >
+              🚨 ยืนยันลบข้อมูล
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>
