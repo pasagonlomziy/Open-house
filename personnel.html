@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#FFF7ED">
+  <title>แนะนำบุคลากร - วิศวกรรมคอมพิวเตอร์</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="personnestyle.css">
+  <style>
+    :root {
+      --bg: #FFFBF7;
+      --bg-top: #FFF1E2;
+      --surface: #FFFFFF;
+      --line: #FFE1C7;
+      --orange: #F97316;
+      --orange-soft: #FED7AA;
+      --orange-tint: #FFEDD5;
+      --orange-deep: #C2410C;
+      --ink: #3A2A20;
+      --muted: #8B7060;
+      --shadow: 0 2px 12px rgba(249, 115, 22, .09);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Noto Sans Thai", "Sarabun", system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, var(--bg-top) 0, var(--bg) 340px) var(--bg);
+      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+               max(40px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      line-height: 1.5;
+    }
+    .wrap { max-width: 1040px; margin: 0 auto; }
+
+    .back {
+      display: inline-flex; align-items: center; gap: 6px;
+      min-height: 44px; padding: 0 18px;
+      font: 600 15px/1 inherit; font-family: inherit;
+      color: var(--orange-deep);
+      background: var(--surface);
+      border: 1.5px solid var(--orange-soft);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+    }
+    .back:active { background: var(--orange-tint); transform: scale(.97); }
+    .back:focus-visible, .card:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+
+    .title { text-align: center; margin: 22px 0 26px; }
+    .title h1 { margin: 0; font-size: clamp(24px, 6.5vw, 38px); font-weight: 800; line-height: 1.3; }
+    .title p {
+      margin: 2px 0 0;
+      font-size: clamp(17px, 4.6vw, 24px);
+      font-weight: 700;
+      color: var(--orange);
+    }
+
+    ul { list-style: none; margin: 0; padding: 0; }
+
+    .card {
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      text-align: center;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 16px 10px 14px;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .card:active { transform: scale(.98); }
+    .card img {
+      width: 76px; height: 76px; border-radius: 50%;
+      object-fit: cover;
+      object-position: center 18%;
+      border: 0;
+      box-shadow: 0 0 0 3px var(--surface), 0 0 0 5.5px var(--orange-soft);
+      background: #fff;
+      margin-bottom: 12px;
+    }
+
+    /* รูปที่มีขอบขาวเกินในไฟล์ภาพ: ซูมให้เต็มวง */
+    .card .ph {
+      width: 76px; height: 76px; border-radius: 50%; overflow: hidden;
+      box-shadow: 0 0 0 3px var(--surface), 0 0 0 5.5px var(--orange-soft);
+      margin-bottom: 12px; background: #fff; flex: none;
+    }
+    .card .ph img.zoom {
+      width: 100%; height: 100%; margin: 0; box-shadow: none; border-radius: 0;
+      transform: scale(1.3); transform-origin: 50% 15%;
+    }
+    @media (min-width: 640px) { .card .ph { width: 84px; height: 84px; } }
+    .card h3 { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.45; color: var(--ink); }
+
+    .head { display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
+    .badge {
+      display: inline-block;
+      background: var(--orange); color: #fff;
+      font-size: 13px; font-weight: 700;
+      padding: 5px 16px; border-radius: 999px;
+      margin-bottom: -14px; position: relative; z-index: 1;
+      box-shadow: 0 2px 8px rgba(249, 115, 22, .3);
+    }
+    .card-head {
+      width: min(100%, 280px);
+      padding: 28px 16px 20px;
+      background: linear-gradient(180deg, #FFF7ED, #FFFFFF);
+      border: 1.5px solid var(--orange);
+    }
+    .card-head img { width: 96px; height: 96px; box-shadow: 0 0 0 3px var(--surface), 0 0 0 5.5px var(--orange); }
+    .card-head h3 { font-size: 16px; font-weight: 700; }
+
+    .section-title {
+      display: flex; align-items: center; gap: 12px;
+      margin: 0 0 16px;
+      font-size: 16px; font-weight: 700; color: var(--orange-deep);
+    }
+    .section-title::before, .section-title::after {
+      content: ""; height: 1px; flex: 1; background: var(--orange-soft);
+    }
+
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+    @media (min-width: 640px) {
+      body { padding-top: 28px; }
+      .grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+      .card img { width: 84px; height: 84px; }
+      .card h3 { font-size: 15px; }
+    }
+    @media (min-width: 900px) {
+      .grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (min-width: 1040px) {
+      .grid { grid-template-columns: repeat(6, 1fr); }
+      .card h3 { font-size: 14px; }
+    }
+    @media (hover: hover) {
+      .back:hover { background: var(--orange); color: #fff; }
+      .card:hover { transform: translateY(-3px); box-shadow: 0 8px 22px rgba(249, 115, 22, .16); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .card, .back { transition: none; }
+      .card:hover, .card:active, .back:active { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <button class="back" type="button" onclick="history.back()">&larr; กลับหน้าหลัก</button>
+
+    <header class="title">
+      <h1>แนะนำบุคลากร</h1>
+      <p>วิศวกรรมคอมพิวเตอร์</p>
+    </header>
+
+    <section class="head" aria-label="หัวหน้าสาขาวิชา">
+      <span class="badge">หัวหน้าสาขาวิชา</span>
+      <ul style="width:100%;display:flex;justify-content:center">
+        <li class="card card-head">
+          <img src="photoarjan/Wuttipong.gif" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=วุฒิพงษ์&background=f97316&color=fff&bold=true&size=160';" alt="ผศ.ดร. วุฒิพงษ์ พิชิตวงศ์" width="80" height="80" decoding="async">
+          <h3>ผศ.ดร. วุฒิพงษ์ พิชิตวงศ์</h3>
+        </li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="staff-title">
+      <h2 class="section-title" id="staff-title">อาจารย์ประจำสาขา</h2>
+      <ul class="grid">
+        <li class="card">
+          <img src="photoarjan/chitisan.gif" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=ชิติสรรค์&background=f97316&color=fff&bold=true&size=160';" alt="อ. ชิติสรรค์ วิชิโต" width="80" height="80" loading="lazy" decoding="async">
+          <h3>อ. ชิติสรรค์ วิชิโต</h3>
+        </li>
+        <li class="card">
+          <img src="photoarjan/thamagon.gif" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=ธรรมกร&background=f97316&color=fff&bold=true&size=160';" alt="ผศ. ธรรมกร ครองไตภพ" width="80" height="80" loading="lazy" decoding="async">
+          <h3>ผศ. ธรรมกร ครองไตภพ</h3>
+        </li>
+        <li class="card">
+          <img src="photoarjan/prakai.gif" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=ประกาย&background=f97316&color=fff&bold=true&size=160';" alt="อ. ประกาย นาดี" width="80" height="80" loading="lazy" decoding="async">
+          <h3>อ. ประกาย นาดี</h3>
+        </li>
+        <li class="card">
+          <img src="photoarjan/witaya.gif" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=วิทยา&background=f97316&color=fff&bold=true&size=160';" alt="ผศ. วิทยา ศรีกุล" width="80" height="80" loading="lazy" decoding="async">
+          <h3>ผศ. วิทยา ศรีกุล</h3>
+        </li>
+        <li class="card">
+          <img src="photoarjan/Ketkan.gif" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=เกตุกาญจน์&background=f97316&color=fff&bold=true&size=160';" alt="อ.ดร. เกตุกาญจน์ ไชยพันธุ์" width="80" height="80" loading="lazy" decoding="async">
+          <h3>อ.ดร. เกตุกาญจน์ ไชยพันธุ์</h3>
+        </li>
+        <li class="card">
+          <img src="photoarjan/Aphichat.gif" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=อภิชาต&background=f97316&color=fff&bold=true&size=160';" alt="ผศ.ดร. อภิชาต ติประเสริฐสิน" width="80" height="80" loading="lazy" decoding="async">
+          <h3>ผศ.ดร. อภิชาต ติประเสริฐสิน</h3>
+        </li>
+        <li class="card">
+          <img src="photoarjan/Phonphassorn.gif" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=พรภัสสร&background=f97316&color=fff&bold=true&size=160';" alt="ผศ. พรภัสสร อ่อนเกิด" width="80" height="80" loading="lazy" decoding="async">
+          <h3>ผศ. พรภัสสร อ่อนเกิด</h3>
+        </li>
+        <li class="card">
+          <img src="photoarjan/Supattra.gif" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=สุภัทรา&background=f97316&color=fff&bold=true&size=160';" alt="อ. สุภัทรา เกิดเมฆ" width="80" height="80" loading="lazy" decoding="async">
+          <h3>อ. สุภัทรา เกิดเมฆ</h3>
+        </li>
+        <li class="card">
+          <span class="ph"><img class="zoom" src="photoarjan/Thipa.gif" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=ทิพา&background=f97316&color=fff&bold=true&size=160';" alt="อ. ทิพา กองศรีมา" width="80" height="80" loading="lazy" decoding="async"></span>
+          <h3>อ. ทิพา กองศรีมา</h3>
+        </li>
+        <li class="card">
+          <img src="photoarjan/Phutthawut.gif" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=พุทธาวุฒิ&background=f97316&color=fff&bold=true&size=160';" alt="อ. พุทธาวุฒิ ถิกฤธร" width="80" height="80" loading="lazy" decoding="async">
+          <h3>อ. พุทธาวุฒิ ถิกฤธร</h3>
+        </li>
+        <li class="card">
+          <img src="photoarjan/Pheerachat.gif" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=ภีระชาติ&background=f97316&color=fff&bold=true&size=160';" alt="อ.ดร. ภีระชาติ สุขสุทธิ์" width="80" height="80" loading="lazy" decoding="async">
+          <h3>อ.ดร. ภีระชาติ สุขสุทธิ์</h3>
+        </li>
+        <li class="card">
+          <img src="photoarjan/Ratiporn.png" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=รติพร&background=f97316&color=fff&bold=true&size=160';" alt="อ.ดร. รติพร จันทร์กลั่น" width="80" height="80" loading="lazy" decoding="async">
+          <h3>อ.ดร. รติพร จันทร์กลั่น</h3>
+        </li>
+      </ul>
+    </section>
+  </div>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f97316">
+<title>คุณสมบัติผู้เข้าศึกษา — Open House</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body{font-family:"Kanit","Noto Sans Thai","Leelawadee UI",sans-serif;-webkit-tap-highlight-color:transparent}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .rise{animation:rise .5s cubic-bezier(.16,1,.3,1) both}
+  .d1{animation-delay:.05s}.d2{animation-delay:.12s}.d3{animation-delay:.19s}.d4{animation-delay:.26s}.d5{animation-delay:.33s}.d6{animation-delay:.4s}
+  @media (prefers-reduced-motion:reduce){.rise{animation:none}*{transition-duration:.01ms!important}}
+</style>
+</head>
+<body class="min-h-screen bg-white text-slate-800 antialiased relative overflow-x-hidden">
+<div class="fixed inset-0 -z-0 pointer-events-none">
+  <div class="absolute inset-0 bg-gradient-to-b from-orange-500 via-orange-200 via-30% to-white to-60%"></div>
+  <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-full max-w-3xl h-72 bg-amber-300/40 blur-3xl"></div>
+</div>
+<main class="relative z-10 px-4 pt-5 pb-12 sm:pt-10">
+<div class="mx-auto max-w-2xl">
+  <!-- ⚡ ปุ่มย้อนกลับปุ่มเดียว เชื่อมไปยังหน้าเมนู -->
+  <nav class="rise flex items-center justify-between mb-5 text-xs sm:text-sm font-semibold">
+    <a href="index.html?openModal=true" class="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur text-orange-600 border-2 border-orange-500 rounded-full px-4 py-1.5 shadow-sm hover:bg-orange-500 hover:text-white active:scale-95 transition">← ย้อนกลับ</a>
+    <span class="bg-white/70 backdrop-blur text-orange-700 rounded-full px-3 py-1.5 border border-white/80">คุณสมบัติผู้เข้าศึกษา</span>
+  </nav>
+  <article class="rise d1 bg-white rounded-[1.75rem] sm:rounded-[2.25rem] shadow-[0_20px_50px_-15px_rgba(234,88,12,.35)] border border-orange-100 overflow-hidden">
+    <header class="px-6 pt-8 pb-6 sm:px-10 sm:pt-10 bg-gradient-to-b from-orange-50 to-white">
+      <span class="inline-block bg-orange-100 text-orange-700 text-[10px] sm:text-xs font-extrabold tracking-widest uppercase px-3 py-1 rounded-full border border-orange-200/60">Admission Qualifications</span>
+      <h1 class="mt-3 text-3xl sm:text-5xl font-extrabold leading-tight tracking-tight text-slate-900">คุณสมบัติผู้เข้าศึกษา</h1>
+      <p class="mt-4 text-base sm:text-lg font-semibold leading-relaxed text-orange-600 border-l-4 border-orange-400 pl-4">"เปิดรับสมัครผู้สำเร็จการศึกษา ม.6, ปวช. และ ปวส. ในสาขาวิชาที่เกี่ยวข้อง"</p>
+    </header>
+    <section class="px-6 pb-8 sm:px-10 sm:pb-10 space-y-5 text-sm sm:text-base leading-relaxed text-slate-600">
+      <div class="rise d2 rounded-2xl border border-orange-100 bg-orange-50/50 p-4 sm:p-5 space-y-3">
+        <h2 class="flex items-center gap-2.5 text-base sm:text-lg font-bold text-slate-900"><span class="w-7 h-7 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 text-white text-sm flex items-center justify-center shadow">1</span>ม.6 หรือเทียบเท่า / ปวช.</h2>
+        <ul class="space-y-2 pl-1">
+          <li class="flex gap-2.5"><span class="text-orange-500 font-bold leading-relaxed">•</span><p><strong class="text-slate-900">ม.6 (วิทย์-คณิต):</strong> กลุ่มสาระการเรียนรู้วิทยาศาสตร์และคณิตศาสตร์ รวมกันไม่น้อยกว่า 30 หน่วยกิต</p></li>
+          <li class="flex gap-2.5"><span class="text-orange-500 font-bold leading-relaxed">•</span><p><strong class="text-slate-900">ปวช.:</strong> ประเภทวิชาอุตสาหกรรมทุกสาขา หรือเทียบเท่าตามที่คณะกรรมการบริหารหลักสูตรพิจารณาเห็นชอบ</p></li>
+        </ul>
+      </div>
+      <div class="rise d3 rounded-2xl border border-orange-100 bg-orange-50/50 p-4 sm:p-5 space-y-3">
+        <h2 class="flex items-center gap-2.5 text-base sm:text-lg font-bold text-slate-900"><span class="w-7 h-7 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 text-white text-sm flex items-center justify-center shadow">2</span>ปวส. ประเภทวิชาอุตสาหกรรม</h2>
+        <ul class="space-y-2 pl-1">
+          <li class="flex gap-2.5"><span class="text-orange-500 font-bold leading-relaxed">•</span><p><strong class="text-slate-900">สาขาที่รับเข้าศึกษา:</strong> ช่างเทคนิคคอมพิวเตอร์, เทคโนโลยีคอมพิวเตอร์, เทคโนโลยีสารสนเทศสายช่างอุตสาหกรรม, ช่างอิเล็กทรอนิกส์, ช่างเมคคาทรอนิกส์ และช่างไฟฟ้ากำลัง (หรือเทียบเท่า)</p></li>
+          <li class="flex gap-2.5"><span class="text-orange-500 font-bold leading-relaxed">•</span><p><strong class="text-slate-900">การเทียบโอน:</strong> ใช้วิธีการเทียบโอนตามข้อบังคับมหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน ว่าด้วยการจัดการศึกษาระดับปริญญาตรี</p></li>
+        </ul>
+      </div>
+      <div class="rise d4 flex items-start gap-3 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 text-white p-4 shadow-md">
+        <span class="text-2xl">📍</span>
+        <div class="text-xs sm:text-sm"><p class="font-bold text-sm sm:text-base">คณะวิศวกรรมศาสตร์และเทคโนโลยี</p><p class="opacity-95">มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน 744 ถ.สุรนารายณ์ ต.ในเมือง อ.เมือง จ.นครราชสีมา 30000</p></div>
+      </div>
+    </section>
+    <footer class="flex items-center justify-center px-6 py-4 sm:px-10 bg-orange-50/60 border-t border-orange-100 text-center">
+      <p class="text-xs sm:text-sm text-slate-500">Computer Engineering Open House RMUTI</p>
+    </footer>
+  </article>
+</div>
+</main>
+</body>
+</html>

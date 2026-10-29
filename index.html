@@ -1,0 +1,1817 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover"
+    />
+    <title>CPE Exhibition - แนะนำเกี่ยวกับวิศวะคอมพิวเตอร์</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      * {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      @keyframes gradientShift {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      .near-end-gradient {
+        background: linear-gradient(
+          -45deg,
+          #ff416c,
+          #ff4b2b,
+          #f59e0b,
+          #ef4444
+        ) !important;
+        background-size: 300% 300% !important;
+        animation: gradientShift 4s ease infinite !important;
+        color: #ffffff !important;
+        box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4) !important;
+      }
+
+      .near-end-text {
+        color: #ffffff !important;
+      }
+
+      .near-end-subtext {
+        color: #fef08a !important;
+      }
+
+      .pulse-warning {
+        animation: pulseGlow 1.5s infinite alternate;
+      }
+
+      @keyframes pulseGlow {
+        0% {
+          transform: scale(1);
+          filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.6));
+        }
+        100% {
+          transform: scale(1.02);
+          filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.9));
+        }
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      .animate-slide-up {
+        animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+      }
+
+      /* ===== 3D + Mobile polish ===== */
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        min-height: 100dvh;
+      }
+      .pt-safe {
+        padding-top: env(safe-area-inset-top, 0px);
+      }
+      .max-h-\[85vh\] {
+        max-height: 85dvh;
+      }
+      footer {
+        padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+      }
+      button[aria-label="ช่องทางการติดต่อ"] {
+        bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important;
+        right: max(14px, env(safe-area-inset-right)) !important;
+        min-height: 48px;
+        box-shadow:
+          0 5px 0 #9a3412,
+          0 12px 20px rgba(154, 52, 18, 0.35) !important;
+      }
+      button[aria-label="ช่องทางการติดต่อ"]:active {
+        transform: translateY(4px) !important;
+        box-shadow:
+          0 1px 0 #9a3412,
+          0 4px 8px rgba(154, 52, 18, 0.3) !important;
+      }
+
+      /* Timer card: tilt in 3D */
+      #timer-card {
+        transform: perspective(900px) rotateX(var(--rx, 0deg))
+          rotateY(var(--ry, 0deg));
+        transform-style: preserve-3d;
+        transition:
+          transform 0.18s ease-out,
+          background 0.7s,
+          box-shadow 0.7s !important;
+        box-shadow:
+          0 2px 0 #fff inset,
+          0 8px 0 #fdba74,
+          0 22px 36px -10px rgba(194, 65, 12, 0.35) !important;
+      }
+      #realtime-clock {
+        text-shadow:
+          0 1px 0 #fed7aa,
+          0 2px 0 #fdba74,
+          0 3px 0 #fb923c,
+          0 4px 0 #f97316,
+          0 10px 14px rgba(154, 52, 18, 0.35);
+        transform: translateZ(28px);
+      }
+      #countdown-pill {
+        transform: translateZ(14px);
+        box-shadow:
+          0 4px 0 #c2410c,
+          0 10px 16px rgba(194, 65, 12, 0.3) !important;
+      }
+
+      /* Title: extruded */
+      h1 {
+        filter: drop-shadow(0 2px 0 #fed7aa) drop-shadow(0 4px 0 #fdba74)
+          drop-shadow(0 8px 10px rgba(154, 52, 18, 0.35));
+        font-size: clamp(2.2rem, 11vw, 3.6rem);
+      }
+
+      /* Floating 3D chip */
+      .chip-wrap {
+        perspective: 520px;
+        height: 74px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 4px;
+      }
+      .chip3d {
+        position: relative;
+        width: 56px;
+        height: 56px;
+        transform-style: preserve-3d;
+        animation:
+          chipSpin 8s linear infinite,
+          chipFloat 3s ease-in-out infinite alternate;
+      }
+      .chip3d i {
+        position: absolute;
+        inset: 0;
+        border-radius: 10px;
+        backface-visibility: hidden;
+        font-style: normal;
+        display: grid;
+        place-items: center;
+      }
+      .chip3d .f,
+      .chip3d .b {
+        background: linear-gradient(145deg, #fdba74, #ea580c);
+        border: 3px solid #fff;
+        color: #fff;
+        font:
+          900 17px/1 "Kanit",
+          sans-serif;
+        letter-spacing: 1px;
+        box-shadow: inset 0 0 0 6px rgba(255, 255, 255, 0.18);
+      }
+      .chip3d .f {
+        transform: translateZ(7px);
+      }
+      .chip3d .b {
+        transform: rotateY(180deg) translateZ(7px);
+      }
+      .chip3d .l,
+      .chip3d .r {
+        width: 14px;
+        left: 21px;
+        background: repeating-linear-gradient(
+          0deg,
+          #fff 0 4px,
+          #c2410c 4px 8px
+        );
+        border-radius: 2px;
+      }
+      .chip3d .l {
+        transform: rotateY(-90deg) translateZ(28px);
+      }
+      .chip3d .r {
+        transform: rotateY(90deg) translateZ(28px);
+      }
+      @keyframes chipSpin {
+        to {
+          transform: rotateY(360deg);
+        }
+      }
+      @keyframes chipFloat {
+        from {
+          translate: 0 -3px;
+        }
+        to {
+          translate: 0 4px;
+        }
+      }
+
+      /* 3D keycap buttons */
+      a[href="quiz.html"],
+      a[href="personnel.html"],
+      button[onclick*="menu-modal"] {
+        border-bottom-width: 2px !important;
+        transition:
+          transform 0.08s,
+          box-shadow 0.08s !important;
+      }
+      a[href="quiz.html"] {
+        min-height: 58px !important;
+        box-shadow:
+          0 7px 0 #c2410c,
+          0 14px 22px rgba(194, 65, 12, 0.35) !important;
+      }
+      button[onclick*="menu-modal"] {
+        box-shadow:
+          0 6px 0 #fdba74,
+          0 12px 18px rgba(249, 115, 22, 0.2) !important;
+      }
+      a[href="personnel.html"] {
+        box-shadow:
+          0 6px 0 #cbd5e1,
+          0 12px 18px rgba(71, 85, 105, 0.15) !important;
+      }
+      a[href="quiz.html"]:active {
+        transform: translateY(6px) !important;
+        box-shadow:
+          0 1px 0 #c2410c,
+          0 3px 6px rgba(194, 65, 12, 0.3) !important;
+      }
+      button[onclick*="menu-modal"]:active,
+      a[href="personnel.html"]:active {
+        transform: translateY(5px) !important;
+        box-shadow: 0 1px 0 #cbd5e1 !important;
+      }
+      @media (hover: hover) {
+        a[href="quiz.html"]:hover {
+          transform: translateY(-2px) !important;
+        }
+      }
+
+      /* Brochure + modal cards: raised layers */
+      .card3d {
+        transform: perspective(1000px) rotateX(var(--rx, 0deg))
+          rotateY(var(--ry, 0deg));
+        transition: transform 0.2s ease-out;
+        box-shadow:
+          0 6px 0 #fdba74,
+          0 20px 34px -8px rgba(194, 65, 12, 0.3) !important;
+        margin-bottom: 8px;
+      }
+      #contact-card,
+      #menu-card {
+        box-shadow:
+          0 -10px 40px rgba(154, 52, 18, 0.35),
+          0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+      }
+
+      /* Mobile readability + touch targets */
+      @media (max-width: 639px) {
+        .text-\[8px\] {
+          font-size: 10px !important;
+        }
+        .text-\[9px\] {
+          font-size: 11px !important;
+        }
+        .text-\[10px\] {
+          font-size: 12px !important;
+        }
+        .text-\[11px\] {
+          font-size: 13px !important;
+        }
+        #image-modal button {
+          min-width: 40px;
+          min-height: 40px;
+        }
+        #nav-user-container button,
+        #nav-user-container a {
+          min-height: 36px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .chip3d {
+          animation: none;
+          transform: rotateY(-25deg) rotateX(8deg);
+        }
+        #timer-card,
+        .card3d {
+          transition: none !important;
+          transform: none;
+        }
+        .animate-bounce,
+        .pulse-warning {
+          animation: none !important;
+        }
+      }
+
+      /* ===== Contact modal polish ===== */
+      #contact-modal {
+        background: linear-gradient(
+          180deg,
+          rgba(124, 45, 18, 0.45),
+          rgba(67, 20, 7, 0.72)
+        ) !important;
+        backdrop-filter: blur(8px);
+        animation: cmFade 0.25s ease-out;
+      }
+      #contact-card {
+        background: linear-gradient(
+          180deg,
+          #fff 0%,
+          #fff 55%,
+          #fff7ed 100%
+        ) !important;
+        border-radius: 28px 28px 0 0 !important;
+        border-width: 0 !important;
+        box-shadow: 0 -12px 50px rgba(124, 45, 18, 0.35) !important;
+        animation: cmSheet 0.42s cubic-bezier(0.2, 0.9, 0.25, 1.05) both !important;
+        padding-bottom: calc(
+          16px + env(safe-area-inset-bottom, 0px)
+        ) !important;
+        overflow: hidden;
+      }
+      #contact-card::before {
+        content: "";
+        position: absolute;
+        inset: 0 0 auto 0;
+        height: 5px;
+        background: linear-gradient(90deg, #f97316, #fbbf24, #f97316);
+      }
+      @media (min-width: 640px) {
+        #contact-card {
+          border-radius: 28px !important;
+          animation-name: cmPop !important;
+        }
+      }
+      @keyframes cmFade {
+        from {
+          opacity: 0;
+        }
+      }
+      @keyframes cmSheet {
+        from {
+          transform: translateY(60%);
+          opacity: 0;
+        }
+      }
+      @keyframes cmPop {
+        from {
+          transform: scale(0.94) translateY(16px);
+          opacity: 0;
+        }
+      }
+      @keyframes cmItem {
+        from {
+          transform: translateY(14px);
+          opacity: 0;
+        }
+      }
+      #contact-card > div:nth-child(1) {
+        background: #fed7aa !important;
+        margin-top: 4px;
+      }
+      #contact-card h2 {
+        font-size: 18px;
+        gap: 10px;
+      }
+      #contact-card h2 span {
+        display: inline-grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background: linear-gradient(145deg, #fb923c, #ea580c);
+        box-shadow: 0 3px 0 #9a3412;
+        flex: none;
+      }
+      #contact-card h2 span::before {
+        content: "🌐";
+        font-size: 19px;
+      }
+      #contact-card h2 + p {
+        font-size: 12.5px;
+        margin-top: 4px;
+        color: #9a6b4f;
+      }
+      #contact-card > div:nth-child(2) {
+        border-color: #ffedd5;
+      }
+      #contact-card a {
+        background: #fff !important;
+        border: 1.5px solid #ffedd5 !important;
+        border-radius: 18px !important;
+        padding: 10px 12px !important;
+        gap: 10px;
+        box-shadow: 0 3px 0 #fed7aa !important;
+        transition:
+          transform 0.12s,
+          box-shadow 0.12s,
+          border-color 0.2s !important;
+        animation: cmItem 0.45s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+      }
+      #contact-card a:nth-child(1) {
+        animation-delay: 0.06s;
+      }
+      #contact-card a:nth-child(2) {
+        animation-delay: 0.12s;
+      }
+      #contact-card a:nth-child(3) {
+        animation-delay: 0.18s;
+      }
+      #contact-card a:nth-child(4) {
+        animation-delay: 0.24s;
+      }
+      #contact-card a:active {
+        transform: translateY(3px) !important;
+        box-shadow: 0 0 0 #fed7aa !important;
+      }
+      @media (hover: hover) {
+        #contact-card a:hover {
+          border-color: #fb923c !important;
+          transform: translateY(-1px);
+        }
+      }
+      #contact-card a > div > span {
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        background: linear-gradient(145deg, #fff7ed, #ffedd5);
+        border: 1.5px solid #fed7aa;
+        font-size: 22px !important;
+        flex: none;
+      }
+      #contact-card a[href="https://www.rmuti.ac.th"] > div > span::before {
+        content: "🏛️";
+      }
+      #contact-card a[href*="ENTAKORAI"] > div > span::before {
+        content: "🔧";
+      }
+      #contact-card a[href*="profile.php"] > div > span::before {
+        content: "💻";
+      }
+      #contact-card a[href*="quota"] > div > span::before {
+        content: "🎓";
+      }
+      #contact-card a .font-black {
+        font-size: 14px !important;
+        line-height: 1.3;
+        color: #1e293b;
+      }
+      #contact-card a .text-\[10px\] {
+        font-size: 11.5px !important;
+        color: #94755f;
+        word-break: break-all;
+      }
+      #contact-card a > span {
+        font-size: 0 !important;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        flex: none;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(145deg, #fb923c, #ea580c);
+        box-shadow: 0 2px 0 #9a3412;
+      }
+      #contact-card a > span::after {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border: solid #fff;
+        border-width: 2.5px 2.5px 0 0;
+        transform: translate(-1px, 1px) rotate(45deg);
+      }
+      #contact-card button[onclick="closeContactModal()"] {
+        background: linear-gradient(145deg, #fb923c, #ea580c) !important;
+        color: #fff !important;
+        border: 0 !important;
+        border-radius: 18px !important;
+        min-height: 52px;
+        font-weight: 800;
+        box-shadow:
+          0 5px 0 #9a3412,
+          0 12px 18px rgba(194, 65, 12, 0.25) !important;
+        transition:
+          transform 0.08s,
+          box-shadow 0.08s;
+      }
+      #contact-card button[onclick="closeContactModal()"]:active {
+        transform: translateY(4px) !important;
+        box-shadow: 0 1px 0 #9a3412 !important;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #contact-modal,
+        #contact-card,
+        #contact-card a {
+          animation: none !important;
+        }
+      }
+
+      /* ===== Refined orange + white mobile experience ===== */
+      :root {
+        color-scheme: light;
+        --brand: #f97316;
+        --brand-dark: #c2410c;
+        --brand-soft: #fff7ed;
+        --ink: #263244;
+      }
+      body {
+        background: #fffaf5;
+      }
+      body > div.fixed.inset-0.z-0 svg {
+        opacity: 0.24;
+      }
+      header nav > div:first-child {
+        background: rgba(255, 255, 255, 0.88);
+        border-color: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 8px 24px rgba(124, 45, 18, 0.1);
+      }
+      #timer-card {
+        border-color: rgba(255, 255, 255, 0.98);
+        box-shadow:
+          0 2px 0 #fff inset,
+          0 7px 0 #fed7aa,
+          0 18px 34px -12px rgba(194, 65, 12, 0.3) !important;
+      }
+      #timer-card > div:first-child {
+        margin-bottom: 0.7rem;
+      }
+      #status-badge {
+        letter-spacing: 0.04em;
+      }
+      #realtime-clock {
+        color: #293548;
+      }
+      .chip3d {
+        animation-duration: 12s, 4s;
+      }
+      .chip3d .f,
+      .chip3d .b {
+        box-shadow:
+          inset 0 0 0 5px rgba(255, 255, 255, 0.24),
+          0 8px 18px rgba(154, 52, 18, 0.2);
+      }
+      a[href="quiz.html"] {
+        background: linear-gradient(135deg, #fb923c 0%, #f97316 58%, #ea580c 100%);
+        box-shadow:
+          0 5px 0 #c2410c,
+          0 12px 24px rgba(194, 65, 12, 0.26) !important;
+      }
+      a[href="personnel.html"],
+      button[onclick*="menu-modal"] {
+        background: rgba(255, 255, 255, 0.97);
+        border-color: #fed7aa;
+      }
+      button[onclick*="menu-modal"] {
+        color: #c2410c;
+      }
+      .card3d {
+        box-shadow:
+          0 4px 0 #fed7aa,
+          0 16px 30px -12px rgba(194, 65, 12, 0.24) !important;
+      }
+      #menu-modal {
+        background: rgba(38, 29, 24, 0.54) !important;
+        backdrop-filter: blur(10px);
+      }
+      #menu-card {
+        max-width: 680px;
+        background: linear-gradient(160deg, #fff 0%, #fff 74%, #fff8f0 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.9) !important;
+        border-top: 4px solid #f97316 !important;
+        border-radius: 26px 26px 0 0 !important;
+        box-shadow:
+          0 22px 60px rgba(67, 20, 7, 0.3),
+          0 1px 0 rgba(255, 255, 255, 0.95) inset !important;
+        padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px)) !important;
+      }
+      #menu-card > div:nth-child(2) {
+        border-color: #ffedd5;
+        padding-bottom: 12px;
+        margin-bottom: 14px;
+      }
+      #menu-card h2 {
+        color: var(--ink);
+        font-size: clamp(18px, 4vw, 22px);
+        gap: 9px;
+      }
+      #menu-card h2 > span {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 13px;
+        color: white;
+        background: linear-gradient(145deg, #fdba74, #f97316);
+        box-shadow: 0 3px 0 #c2410c;
+        flex: none;
+      }
+      #menu-card h2 > span::before {
+        content: "✦";
+        font-size: 20px;
+      }
+      #menu-card > div.grid {
+        gap: 10px;
+      }
+      #menu-card > div.grid > a {
+        min-height: 58px;
+        display: flex;
+        align-items: center;
+        padding: 12px 15px !important;
+        border: 1.5px solid #fed7aa !important;
+        border-left: 6px solid #f97316 !important;
+        border-radius: 15px !important;
+        background: #fff !important;
+        box-shadow:
+          0 3px 0 #ffedd5,
+          0 8px 18px rgba(124, 45, 18, 0.07) !important;
+        transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+      }
+      #menu-card > div.grid > a h3 {
+        width: 100%;
+        font-size: 15px;
+        line-height: 1.45;
+        gap: 10px;
+      }
+      #menu-card > div.grid > a h3 > span:first-child {
+        flex: 1;
+      }
+      #menu-card > div.grid > a h3 > span:last-child {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #fff3e8;
+        flex: none;
+      }
+      #menu-card > div.grid > a:active {
+        transform: translateY(2px) !important;
+        box-shadow: 0 1px 0 #ffedd5 !important;
+      }
+      #menu-card > div:nth-child(2) button {
+        width: 40px;
+        height: 40px;
+        background: #fff4e9;
+        color: #9a3412;
+      }
+      #menu-card a:focus-visible,
+      #menu-card button:focus-visible,
+      a[href="quiz.html"]:focus-visible,
+      a[href="personnel.html"]:focus-visible,
+      button[onclick*="menu-modal"]:focus-visible {
+        outline: 3px solid #fb923c;
+        outline-offset: 3px;
+      }
+      @media (hover: hover) {
+        #menu-card > div.grid > a:hover {
+          transform: translateY(-2px);
+          border-color: #fb923c !important;
+          box-shadow:
+            0 5px 0 #fed7aa,
+            0 12px 22px rgba(124, 45, 18, 0.11) !important;
+        }
+      }
+      @media (min-width: 640px) {
+        #menu-card {
+          border-radius: 26px !important;
+          padding: 24px !important;
+        }
+        #menu-card > div.grid > a {
+          min-height: 62px;
+          padding: 14px 16px !important;
+        }
+      }
+      @media (max-width: 639px) {
+        .chip-wrap {
+          height: 58px;
+        }
+        #timer-card {
+          padding: 16px 14px !important;
+          border-radius: 25px !important;
+        }
+        #realtime-clock {
+          font-size: clamp(2rem, 10vw, 2.6rem) !important;
+          letter-spacing: 0.04em;
+        }
+        #countdown-pill {
+          padding: 9px 10px !important;
+          line-height: 1.5;
+        }
+        #menu-card > div.grid > a h3 {
+          font-size: 15px;
+        }
+        .max-w-xl > div:last-of-type {
+          border-radius: 24px !important;
+        }
+        button[aria-label="ช่องทางการติดต่อ"] {
+          min-height: 48px;
+          padding: 10px 14px !important;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="font-sans antialiased text-slate-800 min-h-screen relative bg-white overflow-x-hidden flex flex-col justify-between pb-20 sm:pb-6"
+  >
+    <!-- ⚡ Toast Popup Notification (โทนส้ม-ขาว สไตล์โมเดิร์น) -->
+    <div
+      id="custom-toast"
+      class="fixed top-5 left-1/2 -translate-x-1/2 z-50 hidden transition-all duration-300 ease-out transform -translate-y-5 opacity-0 pointer-events-none"
+    >
+      <div
+        class="bg-white/95 backdrop-blur-md border-2 border-orange-500 rounded-2xl px-5 py-3.5 shadow-[0_10px_25px_-5px_rgba(249,115,22,0.4)] flex items-center gap-3 min-w-[280px]"
+      >
+        <div
+          id="toast-icon"
+          class="w-8 h-8 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white flex items-center justify-center font-bold text-base shrink-0 shadow-sm"
+        >
+          ✓
+        </div>
+        <div class="text-left">
+          <div id="toast-title" class="text-xs font-black text-slate-800">
+            สำเร็จ!
+          </div>
+          <div id="toast-msg" class="text-xs font-bold text-orange-600">
+            แก้ไขข้อมูลเรียบร้อยแล้ว!
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Background -->
+    <div
+      class="fixed inset-0 z-0 pointer-events-none overflow-hidden select-none"
+    >
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-orange-500 via-orange-300 via-orange-100 to-white"
+      ></div>
+
+      <div
+        class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-72 sm:h-96 bg-gradient-to-b from-amber-300/40 via-orange-200/20 to-transparent blur-3xl pointer-events-none"
+      ></div>
+
+      <svg
+        class="absolute inset-0 w-full h-full opacity-80 sm:opacity-100"
+        preserveAspectRatio="none"
+        viewBox="0 0 1400 800"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <linearGradient id="palmGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#7c2d12" stop-opacity="0.8" />
+            <stop offset="60%" stop-color="#9a3412" stop-opacity="0.6" />
+            <stop offset="100%" stop-color="#c2410c" stop-opacity="0.4" />
+          </linearGradient>
+        </defs>
+
+        <g stroke="#9a3412" stroke-opacity="0.4" stroke-width="2" fill="none">
+          <path d="M 680 480 Q 690 472 700 480 Q 710 472 720 480" />
+          <path d="M 710 495 Q 717 489 725 495 Q 732 489 740 495" />
+          <path d="M 650 510 Q 657 505 664 510 Q 671 505 678 510" />
+        </g>
+
+        <g fill="url(#palmGradient)">
+          <path
+            d="M -20 800 C 60 550 100 300 130 80 L 150 82 C 120 300 80 550 10 800 Z"
+          />
+          <path d="M 140 80 C 80 10 10 -10 -80 10 C -10 30 50 50 140 80 Z" />
+          <path d="M 140 80 C 200 0 280 -20 350 10 C 270 50 200 65 140 80 Z" />
+          <path
+            d="M 140 80 C 50 80 -40 110 -100 170 C -20 150 60 120 140 80 Z"
+          />
+          <path
+            d="M 140 80 C 220 110 300 140 360 210 C 280 170 200 130 140 80 Z"
+          />
+          <path
+            d="M 140 80 C 110 170 80 260 30 320 C 80 250 120 170 140 80 Z"
+          />
+
+          <path
+            d="M 180 800 C 220 600 240 420 260 220 L 276 222 C 256 420 236 600 198 800 Z"
+          />
+          <path
+            d="M 268 220 C 210 160 140 140 60 160 C 130 180 190 195 268 220 Z"
+          />
+          <path
+            d="M 268 220 C 320 150 400 130 470 150 C 400 180 340 200 268 220 Z"
+          />
+          <path
+            d="M 268 220 C 180 230 90 270 30 330 C 100 300 180 270 268 220 Z"
+          />
+          <path
+            d="M 268 220 C 340 250 420 290 480 360 C 400 320 330 270 268 220 Z"
+          />
+        </g>
+
+        <g fill="url(#palmGradient)">
+          <path
+            d="M 1260 800 C 1230 550 1210 300 1190 60 L 1208 58 C 1228 300 1248 550 1280 800 Z"
+          />
+          <path
+            d="M 1199 59 C 1120 -10 1040 -20 960 10 C 1040 40 1120 50 1199 59 Z"
+          />
+          <path
+            d="M 1199 59 C 1260 -10 1340 -20 1420 10 C 1340 40 1270 50 1199 59 Z"
+          />
+          <path
+            d="M 1199 59 C 1100 70 1000 100 920 160 C 1010 130 1100 100 1199 59 Z"
+          />
+          <path
+            d="M 1199 59 C 1280 90 1360 120 1440 190 C 1360 150 1280 110 1199 59 Z"
+          />
+        </g>
+      </svg>
+    </div>
+
+    <!-- Header Navbar -->
+    <header class="relative z-20 w-full pt-safe">
+      <nav
+        class="flex items-center justify-between px-3.5 py-3 md:px-12 md:py-6 max-w-7xl mx-auto"
+      >
+        <div
+          class="flex items-center bg-white/50 backdrop-blur-md px-3 py-1.5 md:px-5 md:py-2.5 rounded-full border border-white/80 shadow-sm active:scale-95 transition-all"
+        >
+          <img
+            src="image/raja333.png"
+            alt="University Logo"
+            class="h-6 sm:h-8 md:h-12 object-contain filter drop-shadow-[0_2px_4px_rgba(255,255,255,0.8)]"
+          />
+        </div>
+
+        <div class="flex items-center space-x-2 md:space-x-4">
+          <div id="nav-user-container">
+            <a
+              href="login.html"
+              class="border-2 border-orange-500 rounded-full px-3.5 py-1.5 text-xs md:text-sm font-bold text-orange-600 bg-white/90 hover:bg-orange-500 hover:text-white transition active:scale-95 shadow-sm inline-block"
+            >
+              เข้าสู่ระบบ
+            </a>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <div
+      class="relative z-10 flex-1 flex flex-col justify-center items-center px-3.5 py-2 sm:py-6 max-w-xl mx-auto w-full space-y-3.5 sm:space-y-6"
+    >
+      <!-- Timer Card -->
+      <div class="w-full relative select-none">
+        <div
+          class="absolute -inset-0.5 bg-gradient-to-r from-orange-400/30 via-amber-300/40 to-orange-500/30 rounded-[2rem] sm:rounded-[2.8rem] blur-md sm:blur-xl opacity-80 pointer-events-none"
+        ></div>
+
+        <div
+          id="timer-card"
+          class="bg-gradient-to-b from-white/95 via-white/85 to-orange-50/70 backdrop-blur-xl px-3.5 py-4 sm:px-8 sm:py-7 rounded-[1.8rem] sm:rounded-[2.5rem] border-2 border-white/90 shadow-[0_12px_35px_-10px_rgba(234,88,12,0.2),0_0_0_1px_rgba(255,255,255,0.8)_inset] transition-all duration-700 text-center relative overflow-hidden"
+        >
+          <div class="space-y-1 mb-1.5 sm:mb-3">
+            <span
+              id="status-badge"
+              class="inline-block bg-orange-100/90 text-orange-700 text-[10px] sm:text-xs font-extrabold px-2.5 py-0.5 sm:px-3.5 sm:py-1 rounded-full uppercase tracking-wider shadow-sm border border-orange-200/50"
+            >
+              OPEN HOUSE RMUTI ครั้งที่ 14
+            </span>
+            <div
+              class="text-[10px] sm:text-xs md:text-sm font-black text-slate-700 pt-0.5 leading-snug"
+            >
+              นับถอยหลังงาน OPEN HOUSE (5 – 6 พ.ย. 2569)
+            </div>
+          </div>
+
+          <div
+            id="realtime-clock"
+            class="text-3xl sm:text-6xl md:text-7xl font-black text-slate-800 tracking-wider font-mono transition-colors duration-500 drop-shadow-sm my-0.5"
+          >
+            00:00:00
+          </div>
+
+          <div
+            id="realtime-date"
+            class="text-[10px] sm:text-xs md:text-base font-bold text-orange-600 tracking-wider transition-colors duration-500"
+          >
+            กำลังโหลดวันที่...
+          </div>
+
+          <div
+            id="countdown-box"
+            class="mt-2.5 pt-2.5 sm:mt-3.5 sm:pt-3 border-t border-slate-200/80 transition-all duration-500 flex justify-center"
+          >
+            <div
+              id="countdown-pill"
+              class="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 text-white px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-md border border-orange-400/40 flex flex-wrap items-center justify-center gap-1 sm:gap-2 w-full text-center"
+            >
+              <span
+                class="text-[10px] sm:text-xs md:text-sm font-black tracking-wide whitespace-nowrap drop-shadow-sm"
+              >
+                เวลาเหลือก่อนสิ้นสุดงาน:
+              </span>
+              <span
+                id="countdown-text"
+                class="text-[10px] sm:text-xs md:text-base font-black font-mono tracking-wider text-yellow-100 whitespace-nowrap drop-shadow"
+              >
+                -- วัน -- ชม. -- นาที -- วิ
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <div class="text-center space-y-0.5 sm:space-y-2 pt-0.5">
+        <p
+          class="text-[9px] sm:text-xs md:text-sm tracking-[0.2em] font-extrabold text-orange-600 uppercase"
+        >
+          COMPUTER ENGINEERING Dek 70
+        </p>
+        <h1
+          class="text-2xl sm:text-5xl md:text-6xl font-black tracking-tight text-slate-900 drop-shadow-sm leading-tight"
+        >
+          Open
+          <span
+            class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600"
+          >
+            House
+          </span>
+        </h1>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="w-full space-y-2 sm:space-y-3 pt-0.5">
+        <div class="grid grid-cols-2 gap-2">
+          <button
+            onclick="
+              document.getElementById('menu-modal').classList.remove('hidden')
+            "
+            class="w-full min-h-[46px] bg-white/95 backdrop-blur-md text-orange-600 border-2 border-orange-400 py-2.5 px-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1 hover:bg-orange-50 active:scale-95 transition-all shadow-sm cursor-pointer"
+          >
+            <span> คำแนะนำสาขา</span>
+          </button>
+
+          <a
+            href="personnel.html"
+            class="w-full min-h-[46px] bg-white/95 backdrop-blur-md text-slate-800 border-2 border-slate-300 py-2.5 px-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1 hover:bg-slate-50 active:scale-95 transition-all shadow-sm"
+          >
+            <span> บุคลากร</span>
+          </a>
+        </div>
+
+        <a
+          href="quiz.html"
+          class="w-full min-h-[52px] bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 text-white py-3 px-5 rounded-2xl font-black text-sm sm:text-lg flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-95 transition-all shadow-[0_8px_20px_-4px_rgba(245,158,11,0.5)] border border-orange-300/50 group"
+        >
+          <svg
+            class="w-5 h-5 text-white group-hover:rotate-12 transition-transform shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2.2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+            ></path>
+          </svg>
+          <span> เริ่มทำแบบทดสอบ (Quiz)</span>
+        </a>
+      </div>
+
+      <!-- Brochure Box -->
+      <div
+        class="w-full bg-white/95 backdrop-blur-xl border-2 border-orange-400 rounded-3xl p-3 sm:p-4 shadow-lg relative overflow-hidden"
+      >
+        <div
+          class="flex items-center justify-between border-b border-orange-100 pb-2 mb-2.5"
+        >
+          <div class="flex items-center gap-2">
+            <span class="text-lg sm:text-xl"></span>
+            <h2 class="text-xs sm:text-sm font-black text-slate-800">
+              โบรชัวร์แนะนำสาขาวิชา
+            </h2>
+          </div>
+          <button
+            onclick="openImageModal()"
+            class="text-[10px] sm:text-xs font-bold text-white bg-gradient-to-r from-orange-500 to-amber-500 px-3 py-1 rounded-full shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
+          >
+            <span></span> แตะดูภาพขยาย/ซูม
+          </button>
+        </div>
+
+        <div
+          class="max-h-[380px] sm:max-h-[450px] overflow-y-auto no-scrollbar rounded-2xl border border-slate-200/80 shadow-inner bg-slate-50 relative group cursor-pointer"
+          onclick="openImageModal()"
+        >
+          <img
+            id="brochure-preview-img"
+            src="สไลด์1.JPG"
+            onerror="
+              this.onerror = null;
+              if (this.src.includes('สไลด์1.JPG')) {
+                this.src = 'Moudeng.jpg';
+              } else {
+                this.src = 'image/Moudeng.jpg';
+              }
+            "
+            alt="โบรชัวร์แนะนำสาขาวิชาวิศวกรรมคอมพิวเตอร์"
+            class="w-full h-auto block rounded-2xl"
+          />
+          <div
+            class="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none"
+          >
+            <span
+              class="bg-white/90 text-orange-600 font-bold text-xs px-3 py-1.5 rounded-full shadow-lg border border-orange-200"
+            >
+              คลิกเพื่อซูมขยาย</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div
+      id="image-modal"
+      class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden z-50 flex flex-col justify-between p-2 sm:p-4 transition-opacity"
+    >
+      <div
+        class="flex items-center justify-between z-10 bg-slate-900/90 px-3.5 py-2.5 rounded-2xl border border-white/20 shadow-xl max-w-xl mx-auto w-full"
+      >
+        <span
+          class="text-white text-xs sm:text-sm font-bold flex items-center gap-1.5"
+        >
+          <span></span> โบรชัวร์สาขา
+        </span>
+
+        <div class="flex items-center gap-1.5">
+          <button
+            onclick="zoomBrochure(1.25)"
+            title="ขยาย"
+            class="w-8 h-8 rounded-full bg-white/20 hover:bg-orange-500 text-white font-black flex items-center justify-center text-lg active:scale-95 transition"
+          >
+            +
+          </button>
+          <button
+            onclick="zoomBrochure(0.8)"
+            title="ย่อ"
+            class="w-8 h-8 rounded-full bg-white/20 hover:bg-orange-500 text-white font-black flex items-center justify-center text-lg active:scale-95 transition"
+          >
+            -
+          </button>
+          <button
+            onclick="resetBrochureZoom()"
+            class="px-2.5 py-1 rounded-full bg-white/20 hover:bg-orange-500 text-white text-[10px] sm:text-xs font-bold active:scale-95 transition"
+          >
+            รีเซ็ต
+          </button>
+          <button
+            onclick="closeImageModal()"
+            class="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold text-xl flex items-center justify-center shadow-lg active:scale-95 transition ml-1 cursor-pointer"
+          >
+            &times;
+          </button>
+        </div>
+      </div>
+
+      <div
+        id="modal-img-wrapper"
+        class="flex-1 overflow-auto flex items-start justify-center p-2 my-2 no-scrollbar"
+      >
+        <img
+          id="modal-brochure-img"
+          src="สไลด์1.JPG"
+          onerror="
+            this.onerror = null;
+            if (this.src.includes('สไลด์1.JPG')) {
+              this.src = 'Moudeng.jpg';
+            } else {
+              this.src = 'image/Moudeng.jpg';
+            }
+          "
+          alt="โบรชัวร์ขนาดใหญ่"
+          class="max-w-full h-auto block rounded-xl shadow-2xl transition-transform duration-200 origin-top"
+          style="transform: scale(1)"
+        />
+      </div>
+
+      <div
+        class="text-center text-slate-300 text-[10px] sm:text-xs pb-1 font-medium"
+      >
+        สามารถกดปุ่ม + / -
+        หรือใช้นิ้วหนีบถ่างขยายหน้าจอเพื่อซูมดูข้อความได้ชัดเจน
+      </div>
+    </div>
+
+    <!-- Contact Floating Button -->
+    <button
+      onclick="openContactModal()"
+      class="fixed bottom-4 right-3.5 sm:bottom-5 sm:right-5 z-40 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-full shadow-[0_8px_20px_rgba(245,158,11,0.5)] border-2 border-white/90 flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+      aria-label="ช่องทางการติดต่อ"
+    >
+      <span class="text-lg sm:text-xl animate-bounce"></span>
+      <span class="font-black text-[11px] sm:text-sm tracking-wide"
+        >เว็บมหาลัย / ติดต่อ</span
+      >
+    </button>
+
+    <!-- Footer -->
+    <footer
+      class="relative z-10 py-2.5 text-center text-[10px] sm:text-[11px] font-bold text-slate-500/80"
+    >
+      <p>Computer Engineering Open House RMUTI</p>
+    </footer>
+
+    <!-- Contact Modal -->
+    <div
+      id="contact-modal"
+      class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 z-50 transition-opacity"
+    >
+      <div
+        id="contact-card"
+        class="w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl relative border-t-4 sm:border-4 border-orange-500 max-h-[85vh] flex flex-col justify-between animate-slide-up"
+      >
+        <div
+          class="w-12 h-1.5 bg-slate-300/80 rounded-full mx-auto mb-2 sm:hidden cursor-grab active:cursor-grabbing"
+        ></div>
+
+        <div class="border-b border-orange-100 pb-2.5 mb-2.5">
+          <h2
+            class="text-base sm:text-lg font-black text-slate-800 flex items-center gap-1.5"
+          >
+            <span></span> รวมเว็บเพจ มทร.อีสาน & สาขา
+          </h2>
+          <p class="text-[10px] sm:text-[11px] text-slate-500 font-medium">
+            เลือกคลิกเพื่อไปยังเว็บเพจที่ต้องการ (เปิดแท็บใหม่)
+          </p>
+        </div>
+
+        <div
+          class="space-y-2 overflow-y-auto no-scrollbar pr-0.5 my-1 flex-1 max-h-[55vh]"
+        >
+          <a
+            href="https://www.rmuti.ac.th"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center justify-between p-3 sm:p-3.5 bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 rounded-2xl shadow-sm transition active:scale-95 group min-h-[54px]"
+          >
+            <div class="flex items-center gap-2.5">
+              <span class="text-xl sm:text-2xl"></span>
+              <div class="text-left">
+                <div
+                  class="text-xs font-black text-slate-800 group-hover:text-orange-600"
+                >
+                  เว็บไซต์หลัก มทร.อีสาน (RMUTI)
+                </div>
+                <div class="text-[10px] text-slate-500">www.rmuti.ac.th</div>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-orange-500">&nearr;</span>
+          </a>
+
+          <a
+            href="https://www.facebook.com/ENTAKORAI"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center justify-between p-3 sm:p-3.5 bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 rounded-2xl shadow-sm transition active:scale-95 group min-h-[54px]"
+          >
+            <div class="flex items-center gap-2.5">
+              <span class="text-xl sm:text-2xl"></span>
+              <div class="text-left">
+                <div
+                  class="text-xs font-black text-slate-800 group-hover:text-orange-600"
+                >
+                  Facebook: คณะวิศวกรรมศาสตร์และเทคโนโลยี
+                </div>
+                <div class="text-[10px] text-slate-500">
+                  https://www.facebook.com/ENTAKORAI
+                </div>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-orange-500">&nearr;</span>
+          </a>
+
+          <a
+            href="https://www.facebook.com/profile.php?id=61552989282087&locale=th_TH"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center justify-between p-3 sm:p-3.5 bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 rounded-2xl shadow-sm transition active:scale-95 group min-h-[54px]"
+          >
+            <div class="flex items-center gap-2.5">
+              <span class="text-xl sm:text-2xl"></span>
+              <div class="text-left">
+                <div
+                  class="text-xs font-black text-slate-800 group-hover:text-orange-600"
+                >
+                  Facebook: สาขาวิชาวิศวกรรมคอมพิวเตอร์
+                </div>
+                <div class="text-[10px] text-slate-500">
+                  ติดตามข่าวสารกิจกรรมและผลงานนักศึกษา
+                </div>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-orange-500">&nearr;</span>
+          </a>
+
+          <a
+            href="https://rmuti-quota.gaoapr.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center justify-between p-3 sm:p-3.5 bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 rounded-2xl shadow-sm transition active:scale-95 group min-h-[54px]"
+          >
+            <div class="flex items-center gap-2.5">
+              <span class="text-xl sm:text-2xl"></span>
+              <div class="text-left">
+                <div
+                  class="text-xs font-black text-slate-800 group-hover:text-orange-600"
+                >
+                  ระบบสมัครเข้าศึกษาต่อ (โควตาพิเศษ)
+                </div>
+                <div class="text-[10px] text-slate-500">
+                  สำนักส่งเสริมวิชาการและงานทะเบียน
+                </div>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-orange-500">&nearr;</span>
+          </a>
+        </div>
+
+        <button
+          onclick="closeContactModal()"
+          class="w-full mt-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition active:scale-95 min-h-[44px]"
+        >
+          ← ย้อนกลับ / ปิดหน้าต่าง
+        </button>
+      </div>
+    </div>
+
+    <!-- Menu Modal -->
+    <div
+      id="menu-modal"
+      class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 z-50 transition-opacity"
+      role="dialog"
+      aria-modal="true"
+      aria-label="ข้อมูลแนะนำสาขาวิศวกรรมคอมพิวเตอร์"
+    >
+      <div
+        id="menu-card"
+        class="w-full max-w-2xl bg-gradient-to-b from-white to-orange-50/50 rounded-t-3xl sm:rounded-3xl p-4 sm:p-7 shadow-2xl relative max-h-[85vh] overflow-y-auto no-scrollbar border-t-4 sm:border-2 border-orange-400 animate-slide-up"
+      >
+        <div
+          class="w-12 h-1.5 bg-slate-300/80 rounded-full mx-auto mb-2 sm:hidden cursor-grab active:cursor-grabbing"
+        ></div>
+
+        <div
+          class="flex items-center justify-between border-b border-orange-100 pb-2.5 mb-3"
+        >
+          <h2
+            class="text-lg sm:text-2xl font-black text-slate-800 flex items-center gap-1.5"
+          >
+            <span></span> ข้อมูลแนะนำสาขา
+          </h2>
+          <button
+            onclick="
+              document.getElementById('menu-modal').classList.add('hidden')
+            "
+            class="w-8 h-8 rounded-full bg-slate-100 hover:bg-orange-500 hover:text-white text-slate-500 font-bold text-xl flex items-center justify-center transition active:scale-95 shrink-0"
+          >
+            &times;
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+          <a
+            href="infoengineer.html"
+            class="bg-white border-2 border-orange-400 border-l-8 border-l-orange-500 p-3 sm:p-3.5 rounded-xl shadow-sm active:scale-95 transition-all group"
+          >
+            <h3
+              class="text-xs sm:text-base font-bold text-slate-800 group-hover:text-orange-600 flex items-center justify-between"
+            >
+              <span> วิศวะคอมคือไรอะ?</span>
+              <span class="text-orange-500 font-bold">&rarr;</span>
+            </h3>
+          </a>
+
+          <a
+            href="future.html"
+            class="bg-white border-2 border-orange-400 border-l-8 border-l-orange-500 p-3 sm:p-3.5 rounded-xl shadow-sm active:scale-95 transition-all group"
+          >
+            <h3
+              class="text-xs sm:text-base font-bold text-slate-800 group-hover:text-orange-600 flex items-center justify-between"
+            >
+              <span> อนาคตจะรอดมั้ย?</span>
+              <span class="text-orange-500 font-bold">&rarr;</span>
+            </h3>
+          </a>
+
+          <a
+            href="worthy.html"
+            class="bg-white border-2 border-orange-400 border-l-8 border-l-orange-500 p-3 sm:p-3.5 rounded-xl shadow-sm active:scale-95 transition-all group"
+          >
+            <h3
+              class="text-xs sm:text-base font-bold text-slate-800 group-hover:text-orange-600 flex items-center justify-between"
+            >
+              <span> เหมาะกับคนแบบไหน?</span>
+              <span class="text-orange-500 font-bold">&rarr;</span>
+            </h3>
+          </a>
+
+          <a
+            href="final.html"
+            class="bg-white border-2 border-orange-400 border-l-8 border-l-orange-500 p-3 sm:p-3.5 rounded-xl shadow-sm active:scale-95 transition-all group"
+          >
+            <h3
+              class="text-xs sm:text-base font-bold text-slate-800 group-hover:text-orange-600 flex items-center justify-between"
+            >
+              <span> จบไปทำงานอะไร?</span>
+              <span class="text-orange-500 font-bold">&rarr;</span>
+            </h3>
+          </a>
+
+          <a
+            href="qualification.html"
+            class="bg-white border-2 border-orange-400 border-l-8 border-l-orange-500 p-3 sm:p-3.5 rounded-xl shadow-sm active:scale-95 transition-all group sm:col-span-2"
+          >
+            <h3
+              class="text-xs sm:text-base font-bold text-slate-800 group-hover:text-orange-600 flex items-center justify-between"
+            >
+              <span> คุณสมบัติผู้เข้าศึกษา (ม.6 / ปวช. / ปวส.)</span>
+              <span class="text-orange-500 font-bold">&rarr;</span>
+            </h3>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div
+      id="edit-profile-modal"
+      class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 transition-opacity"
+    >
+      <div
+        class="w-full max-w-sm bg-white rounded-3xl p-5 shadow-2xl relative border-4 border-orange-500 animate-slide-up text-center"
+      >
+        <h2 class="text-base sm:text-lg font-black text-slate-800 mb-1">
+          ✏️ แก้ไขข้อมูลผู้ใช้งาน
+        </h2>
+        <p class="text-[11px] text-slate-500 font-medium mb-3">
+          แก้ไขชื่อ-นามสกุล หรือสังกัดโรงเรียนได้ที่นี่
+        </p>
+
+        <div class="space-y-2.5 text-left mb-4">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1"
+              >ชื่อจริง</label
+            >
+            <input
+              type="text"
+              id="edit-firstname-input"
+              class="w-full px-3 py-2 border-2 border-orange-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 bg-orange-50/30"
+              placeholder="กรอกชื่อจริง"
+            />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1"
+              >นามสกุล</label
+            >
+            <input
+              type="text"
+              id="edit-lastname-input"
+              class="w-full px-3 py-2 border-2 border-orange-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 bg-orange-50/30"
+              placeholder="กรอกนามสกุล"
+            />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1"
+              >โรงเรียน / สังกัด</label
+            >
+            <input
+              type="text"
+              id="edit-school-input"
+              class="w-full px-3 py-2 border-2 border-orange-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 bg-orange-50/30"
+              placeholder="ชื่อโรงเรียน"
+            />
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button
+            onclick="saveEditedProfile()"
+            class="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold py-2.5 rounded-xl text-xs shadow-md active:scale-95 transition cursor-pointer"
+          >
+            💾 บันทึกข้อมูล
+          </button>
+          <button
+            onclick="closeEditProfileModal()"
+            class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 rounded-xl text-xs active:scale-95 transition cursor-pointer"
+          >
+            ยกเลิก
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+      let brochureScale = 1;
+
+      // ⚡ ฟังก์ชันแสดง Custom Toast Notification โทนส้ม-ขาว
+      function showToast(message, isError = false) {
+        const toast = document.getElementById("custom-toast");
+        const toastMsg = document.getElementById("toast-msg");
+        const toastTitle = document.getElementById("toast-title");
+        const toastIcon = document.getElementById("toast-icon");
+
+        if (!toast) return;
+
+        toastMsg.innerText = message;
+        if (isError) {
+          toastTitle.innerText = "ข้อผิดพลาด";
+          toastIcon.innerText = "✕";
+          toastIcon.className =
+            "w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center font-bold text-base shrink-0 shadow-sm";
+          toastMsg.className = "text-xs font-bold text-red-600";
+        } else {
+          toastTitle.innerText = "สำเร็จ!";
+          toastIcon.innerText = "✓";
+          toastIcon.className =
+            "w-8 h-8 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white flex items-center justify-center font-bold text-base shrink-0 shadow-sm";
+          toastMsg.className = "text-xs font-bold text-orange-600";
+        }
+
+        toast.classList.remove("hidden");
+        setTimeout(() => {
+          toast.classList.remove("-translate-y-5", "opacity-0");
+          toast.classList.add("translate-y-0", "opacity-100");
+        }, 10);
+
+        setTimeout(() => {
+          toast.classList.remove("translate-y-0", "opacity-100");
+          toast.classList.add("-translate-y-5", "opacity-0");
+          setTimeout(() => {
+            toast.classList.add("hidden");
+          }, 300);
+        }, 2500);
+      }
+
+      function openImageModal() {
+        const previewImg = document.getElementById("brochure-preview-img");
+        const modalImg = document.getElementById("modal-brochure-img");
+        if (previewImg && modalImg) {
+          modalImg.src = previewImg.src;
+        }
+        resetBrochureZoom();
+        document.getElementById("image-modal").classList.remove("hidden");
+      }
+
+      function closeImageModal() {
+        document.getElementById("image-modal").classList.add("hidden");
+      }
+
+      function zoomBrochure(factor) {
+        brochureScale = Math.min(Math.max(0.6, brochureScale * factor), 3.5);
+        applyBrochureZoom();
+      }
+
+      function resetBrochureZoom() {
+        brochureScale = 1;
+        applyBrochureZoom();
+      }
+
+      function applyBrochureZoom() {
+        const img = document.getElementById("modal-brochure-img");
+        if (img) {
+          img.style.transform = `scale(${brochureScale})`;
+        }
+      }
+
+      function openContactModal() {
+        document.getElementById("contact-modal").classList.remove("hidden");
+      }
+
+      function closeContactModal() {
+        document.getElementById("contact-modal").classList.add("hidden");
+      }
+
+      const EVENT_END_DATE = new Date(2026, 10, 6, 17, 0, 0).getTime();
+      const WARNING_THRESHOLD_MS = 3 * 60 * 60 * 1000;
+
+      function updateClock() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        const seconds = String(now.getSeconds()).padStart(2, "0");
+
+        const dateOptions = {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        };
+        const dateString = now.toLocaleDateString("th-TH", dateOptions);
+
+        const clockEl = document.getElementById("realtime-clock");
+        const dateEl = document.getElementById("realtime-date");
+        if (clockEl) clockEl.innerText = `${hours}:${minutes}:${seconds}`;
+        if (dateEl) dateEl.innerText = dateString;
+
+        const distance = EVENT_END_DATE - now.getTime();
+        const timerCard = document.getElementById("timer-card");
+        const countdownText = document.getElementById("countdown-text");
+        const statusBadge = document.getElementById("status-badge");
+        const countdownPill = document.getElementById("countdown-pill");
+
+        if (distance <= 0) {
+          if (countdownText)
+            countdownText.innerText = "สิ้นสุดกิจกรรม OPEN HOUSE เรียบร้อยแล้ว";
+          if (statusBadge) {
+            statusBadge.innerText = "● สิ้นสุดกิจกรรม OPEN HOUSE 14";
+            statusBadge.className =
+              "inline-block bg-red-100 text-red-700 text-[10px] sm:text-xs font-bold px-3 py-0.5 rounded-full shadow-sm";
+          }
+          return;
+        }
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hrs = Math.floor(
+          (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+        );
+        const mins = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((distance % (1000 * 60)) / 1000);
+
+        if (countdownText) {
+          countdownText.innerText = `${days} วัน ${hrs} ชม. ${mins} นาที ${secs} วิ`;
+        }
+
+        if (distance <= WARNING_THRESHOLD_MS) {
+          if (timerCard)
+            timerCard.classList.add("near-end-gradient", "pulse-warning");
+          if (clockEl) clockEl.classList.add("near-end-text");
+          if (dateEl) dateEl.classList.add("near-end-subtext");
+          if (countdownPill) {
+            countdownPill.className =
+              "bg-white/20 text-white border border-white/40 px-3 py-2 rounded-xl backdrop-blur-md flex flex-wrap items-center justify-center gap-1 sm:gap-2 w-full text-center shadow-lg";
+          }
+          if (statusBadge) {
+            statusBadge.innerText = " ใกล้สิ้นสุดเวลา OPEN HOUSE !";
+            statusBadge.className =
+              "inline-block bg-white/20 text-yellow-200 text-[10px] sm:text-xs font-bold px-3 py-0.5 rounded-full backdrop-blur-sm border border-white/30";
+          }
+        } else {
+          if (timerCard)
+            timerCard.classList.remove("near-end-gradient", "pulse-warning");
+          if (clockEl) clockEl.classList.remove("near-end-text");
+          if (dateEl) dateEl.classList.remove("near-end-subtext");
+          if (countdownPill) {
+            countdownPill.className =
+              "bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-md border border-orange-400/40 flex flex-wrap items-center justify-center gap-1 sm:gap-2 w-full text-center";
+          }
+          if (statusBadge) {
+            statusBadge.innerText = " OPEN HOUSE RMUTI ครั้งที่ 14";
+            statusBadge.className =
+              "inline-block bg-orange-100/90 text-orange-700 text-[10px] sm:text-xs font-bold px-3 py-0.5 sm:px-3.5 sm:py-1 rounded-full uppercase tracking-wider shadow-sm border border-orange-200/50";
+          }
+        }
+      }
+
+      updateClock();
+      setInterval(updateClock, 1000);
+
+      function updateNavUserUI() {
+        const isLoggedIn = localStorage.getItem("cpe_is_logged_in");
+        const userContainer = document.getElementById("nav-user-container");
+
+        if (isLoggedIn === "true") {
+          const firstname = localStorage.getItem("cpe_firstname") || "";
+          const lastname = localStorage.getItem("cpe_lastname") || "";
+          const school = localStorage.getItem("cpe_school") || "";
+
+          userContainer.innerHTML = `
+            <div class="flex items-center gap-1.5 bg-white/90 backdrop-blur border-2 border-orange-500 rounded-2xl px-2.5 py-1 shadow-sm text-xs md:text-sm">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                <div class="text-left leading-tight">
+                    <div class="font-black text-slate-800 text-[10px] sm:text-xs truncate max-w-[85px] sm:max-w-[130px]">${firstname} ${lastname}</div>
+                    <div class="text-[8px] sm:text-[10px] text-orange-600 font-bold truncate max-w-[85px] sm:max-w-[110px]">${school || "ทั่วไป"}</div>
+                </div>
+                <button onclick="openEditProfileModal()" title="แก้ไขข้อมูล" class="ml-1 bg-orange-100 text-orange-700 hover:bg-orange-500 hover:text-white transition font-bold text-[10px] sm:text-xs px-2 py-1 rounded-lg border border-orange-300 cursor-pointer flex items-center gap-0.5">
+                  ✏️ แก้ไข
+                </button>
+            </div>
+          `;
+        } else {
+          userContainer.innerHTML = `
+            <a href="login.html" 
+               class="border-2 border-orange-500 rounded-full px-3.5 py-1.5 text-xs md:text-sm font-bold text-orange-600 bg-white/90 hover:bg-orange-500 hover:text-white transition active:scale-95 shadow-sm inline-block">
+                เข้าสู่ระบบ
+            </a>
+          `;
+        }
+      }
+
+      function openEditProfileModal() {
+        document.getElementById("edit-firstname-input").value =
+          localStorage.getItem("cpe_firstname") || "";
+        document.getElementById("edit-lastname-input").value =
+          localStorage.getItem("cpe_lastname") || "";
+        document.getElementById("edit-school-input").value =
+          localStorage.getItem("cpe_school") || "";
+        document
+          .getElementById("edit-profile-modal")
+          .classList.remove("hidden");
+      }
+
+      function closeEditProfileModal() {
+        document.getElementById("edit-profile-modal").classList.add("hidden");
+      }
+
+      function saveEditedProfile() {
+        const fn = document.getElementById("edit-firstname-input").value.trim();
+        const ln = document.getElementById("edit-lastname-input").value.trim();
+        const sch = document.getElementById("edit-school-input").value.trim();
+
+        if (!fn || !ln) {
+          showToast("กรุณากรอกชื่อและนามสกุลให้ครบถ้วน", true);
+          return;
+        }
+
+        localStorage.setItem("cpe_firstname", fn);
+        localStorage.setItem("cpe_lastname", ln);
+        localStorage.setItem("cpe_school", sch);
+
+        updateNavUserUI();
+        closeEditProfileModal();
+        showToast("แก้ไขข้อมูลเรียบร้อยแล้ว!");
+      }
+
+      function setupSwipeToClose(cardId, closeCallback) {
+        const card = document.getElementById(cardId);
+        if (!card) return;
+
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+        let ticking = false;
+
+        card.style.willChange = "transform";
+
+        card.addEventListener(
+          "touchstart",
+          (e) => {
+            const scrollableArea =
+              card.querySelector(".overflow-y-auto") || card;
+            if (scrollableArea.scrollTop > 0) {
+              isDragging = false;
+              return;
+            }
+
+            startY = e.touches[0].clientY;
+            isDragging = true;
+            card.style.transition = "none";
+          },
+          { passive: true },
+        );
+
+        card.addEventListener(
+          "touchmove",
+          (e) => {
+            if (!isDragging) return;
+            currentY = e.touches[0].clientY;
+            const deltaY = currentY - startY;
+
+            if (deltaY > 0) {
+              if (!ticking) {
+                window.requestAnimationFrame(() => {
+                  card.style.transform = `translateY(${deltaY}px)`;
+                  ticking = false;
+                });
+                ticking = true;
+              }
+            }
+          },
+          { passive: true },
+        );
+
+        card.addEventListener("touchend", () => {
+          if (!isDragging) return;
+          isDragging = false;
+          const deltaY = currentY - startY;
+
+          card.style.transition =
+            "transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)";
+
+          if (deltaY > 90) {
+            card.style.transform = "translateY(100%)";
+            setTimeout(() => {
+              closeCallback();
+              card.style.transform = "translateY(0)";
+            }, 280);
+          } else {
+            card.style.transform = "translateY(0)";
+          }
+        });
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        const isLoggedIn = localStorage.getItem("cpe_is_logged_in");
+        if (isLoggedIn !== "true") {
+          window.location.href = "login.html";
+          return;
+        }
+
+        updateNavUserUI();
+
+        setupSwipeToClose("contact-card", closeContactModal);
+        setupSwipeToClose("menu-card", () => {
+          document.getElementById("menu-modal").classList.add("hidden");
+        });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("openModal") === "true") {
+          const modal = document.getElementById("menu-modal");
+          if (modal) {
+            modal.classList.remove("hidden");
+          }
+        }
+      });
+
+      // ===== 3D tilt + hero chip =====
+      (function () {
+        const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const hero = document.querySelector("h1")?.parentElement;
+        if (hero)
+          hero.insertAdjacentHTML(
+            "afterbegin",
+            '<div class="chip-wrap" aria-hidden="true"><div class="chip3d"><i class="f">CPE</i><i class="b">CPE</i><i class="l"></i><i class="r"></i></div></div>',
+          );
+        const box = document.getElementById("brochure-preview-img")
+          ?.parentElement.parentElement;
+        if (box) box.classList.add("card3d");
+        if (calm) return;
+        function tilt(el, ax, ay, touch) {
+          if (!el) return;
+          const set = (e) => {
+            if (e.pointerType !== "mouse" && !touch) return;
+            const r = el.getBoundingClientRect();
+            el.style.setProperty(
+              "--ry",
+              ((e.clientX - r.left) / r.width - 0.5) * ay + "deg",
+            );
+            el.style.setProperty(
+              "--rx",
+              -((e.clientY - r.top) / r.height - 0.5) * ax + "deg",
+            );
+          };
+          const rst = () => {
+            el.style.setProperty("--rx", "0deg");
+            el.style.setProperty("--ry", "0deg");
+          };
+          el.addEventListener("pointerdown", set);
+          el.addEventListener("pointermove", set);
+          ["pointerleave", "pointerup", "pointercancel"].forEach((n) =>
+            el.addEventListener(n, rst),
+          );
+        }
+        tilt(document.getElementById("timer-card"), 10, 14, true);
+        tilt(box, 3, 4, false);
+      })();
+    </script>
+  </body>
+</html>
