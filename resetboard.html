@@ -92,22 +92,36 @@
         return list.filter((item) => getItemDay(item) === targetDay);
       }
 
-      // 🔄 สลับโหมด Admin
-      window.toggleAdminMode = function () {
+      // ⚙️ เปิด/ปิด Modal แผงควบคุม Admin
+      window.openAdminMenuModal = function () {
+        document.getElementById("admin-menu-modal").style.display = "flex";
+      };
+
+      window.closeAdminMenuModal = function () {
+        document.getElementById("admin-menu-modal").style.display = "none";
+      };
+
+      // 🔄 สลับโหมดลบข้อมูลในตาราง
+      window.toggleAdminTableMode = function () {
         window.isAdminMode = !window.isAdminMode;
-        const btn = document.getElementById("toggle-mode-btn");
-        const adminControls = document.getElementById("admin-controls");
+        const titleEl = document.getElementById("admin-table-mode-title");
+        const descEl = document.getElementById("admin-table-mode-desc");
+        const badgeEl = document.getElementById("admin-status-badge");
 
         if (window.isAdminMode) {
-          btn.innerHTML = "🔓 โหมด Admin (เปิดอยู่)";
-          btn.className =
-            "px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-900/40 animate-bounce transition cursor-pointer border border-purple-400";
-          adminControls.classList.remove("hidden");
+          if (titleEl) titleEl.innerText = "ปิดปุ่มลบแถวตาราง";
+          if (descEl) descEl.innerText = "ซ่อนปุ่มลบข้อมูลในตาราง";
+          if (badgeEl) {
+            badgeEl.innerText = "🔓 ลบตารางได้";
+            badgeEl.className = "text-xs bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2.5 py-0.5 rounded-full font-bold";
+          }
         } else {
-          btn.innerHTML = "⚙️ จัดการข้อมูล (Admin)";
-          btn.className =
-            "px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 transition cursor-pointer";
-          adminControls.classList.add("hidden");
+          if (titleEl) titleEl.innerText = "เปิดปุ่มลบแถวตาราง";
+          if (descEl) descEl.innerText = "แสดงปุ่มลบข้อมูลทีละรายการในตาราง";
+          if (badgeEl) {
+            badgeEl.innerText = "🔒 โหมดปกติ";
+            badgeEl.className = "text-xs bg-slate-800 text-slate-400 border border-slate-700 px-2.5 py-0.5 rounded-full font-bold";
+          }
         }
 
         window.renderAllTables();
@@ -218,12 +232,38 @@
         );
       };
 
-      // 🔑 2. ปุ่ม Reset Log ทั้งหมด (รหัส: Axxc)
+      // 🔑 2. ปุ่มปลดล็อกสิทธิ์ทำแบบทดสอบทุกคน (รหัส: Solution)
+      window.resetPlayStatusWithAuth = function () {
+        window.openCustomAuthModal(
+          "🔄 ล้างสิทธิ์ทำแบบทดสอบทุกเครื่อง",
+          "กรุณากรอกรหัสผ่านเพื่อปลดล็อกสิทธิ์การทำแบบทดสอบของผู้เล่นทุกเครื่อง",
+          "Solution",
+          () => {
+            window.openConfirmModal(
+              "⚠️ ยืนยันการปลดล็อกสิทธิ์การเล่น",
+              "คุณต้องการปลดล็อกสิทธิ์การทำแบบทดสอบและล้างเซฟเกมของผู้เล่นทั้งหมดใช่หรือไม่?<br><span class='text-indigo-600 font-extrabold'>ผู้เล่นจะสามารถกลับเข้าทำแบบทดสอบใหม่ได้ทันที!</span>",
+              async () => {
+                try {
+                  localStorage.removeItem("cpe_quiz_played");
+                  localStorage.removeItem("cpe_quiz_saved_state");
+                  alert("✅ ปลดล็อกสิทธิ์การทำแบบทดสอบของผู้เล่นทุกคนเรียบร้อยแล้ว!");
+                  window.fetchLogs();
+                } catch (e) {
+                  console.error(e);
+                  alert("❌ เกิดข้อผิดพลาด: " + e.message);
+                }
+              },
+            );
+          },
+        );
+      };
+
+      // 🔑 3. ปุ่ม Reset Log ทั้งหมด (รหัส: Axxc)
       window.resetAllLogsWithAuth = function () {
         window.openCustomAuthModal(
           "💥 Reset Log ทั้งหมด",
           "กรุณากรอกรหัสผ่านเพื่อล้างประวัติลงชื่อเข้าใช้และบอร์ดคะแนนทั้งหมด",
-          "Axxc",
+          "Solution",
           () => {
             window.openConfirmModal(
               "🚨 ยืนยันการล้าง Log ทั้งหมด",
@@ -573,50 +613,19 @@
         </button>
       </div>
 
-      <!-- เมนูสำหรับผู้ดูแลระบบ -->
+      <!-- ปุ่มเปิด Modal เมนูผู้ดูแลระบบ แบบสะอาด คลีน -->
       <div class="flex items-center gap-2">
         <button
-          id="toggle-mode-btn"
-          onclick="toggleAdminMode()"
-          class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 transition cursor-pointer"
+          onclick="openAdminMenuModal()"
+          class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs sm:text-sm shadow-lg shadow-purple-900/40 border border-purple-400/50 transition-all cursor-pointer flex items-center gap-2 active:scale-95"
         >
-          ⚙️ จัดการข้อมูล (Admin)
+          <span>⚙️ เมนูผู้ดูแลระบบ</span>
+          <span
+            id="admin-status-badge"
+            class="text-xs bg-slate-800 text-slate-400 border border-slate-700 px-2.5 py-0.5 rounded-full font-bold"
+            >🔒 โหมดปกติ</span
+          >
         </button>
-
-        <!-- เมนูควบคุมขยายเพิ่มเติมเมื่ออยู่ในโหมด Admin -->
-        <div
-          id="admin-controls"
-          class="hidden flex items-center gap-2 flex-wrap"
-        >
-          <!-- ปุ่ม 1: รีเซ็ตบอร์ด (รหัส: Solution) -->
-          <button
-            onclick="resetLeaderboardWithAuth()"
-            class="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-900/30 transition cursor-pointer border border-purple-400"
-          >
-            🔄 รีเซ็ตบอร์ดคะแนน
-          </button>
-
-          <!-- ปุ่ม 2: Reset Log ทั้งหมด (รหัส: Axxc) -->
-          <button
-            onclick="resetAllLogsWithAuth()"
-            class="px-3 py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs shadow transition cursor-pointer"
-          >
-            💥 Reset Log ทั้งหมด
-          </button>
-
-          <button
-            onclick="exportCSV()"
-            class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition cursor-pointer"
-          >
-            📥 ส่งออก CSV
-          </button>
-          <a
-            href="index.html"
-            class="px-3 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs transition"
-          >
-            🏠 หน้าหลัก
-          </a>
-        </div>
       </div>
     </header>
 
@@ -771,6 +780,174 @@
         </div>
       </div>
     </main>
+
+    <!-- ⚙️ Modal ป๊อบอัพเมนูแผงควบคุม Admin สไตล์สะอาด สวย คลีน -->
+    <div
+      id="admin-menu-modal"
+      class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50"
+    >
+      <div
+        class="bg-slate-900 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl shadow-purple-950/50 border-2 border-purple-500/30 relative animate-in fade-in zoom-in duration-200"
+      >
+        <!-- Header ป๊อบอัพ -->
+        <div
+          class="bg-gradient-to-r from-purple-800 to-indigo-800 p-5 sm:p-6 text-white text-center relative"
+        >
+          <button
+            onclick="closeAdminMenuModal()"
+            class="absolute top-4 right-4 w-9 h-9 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center text-white font-bold text-xl transition cursor-pointer"
+          >
+            &times;
+          </button>
+          <div
+            class="w-12 h-12 bg-white/15 backdrop-blur-md rounded-2xl flex items-center justify-center text-2xl mx-auto mb-2 border border-white/20 shadow-inner"
+          >
+            ⚙️
+          </div>
+          <h3 class="font-black text-lg sm:text-xl tracking-wide">
+            แผงควบคุมผู้ดูแลระบบ (Admin Control)
+          </h3>
+          <p class="text-xs text-purple-200 mt-1 font-medium">
+            เลือกรายการจัดการข้อมูลและรีเซ็ตสิทธิ์ระบบ
+          </p>
+        </div>
+
+        <!-- รายการเมนูการ์ดคลีนๆ -->
+        <div class="p-5 sm:p-6 space-y-3 bg-slate-900">
+          <!-- ตัวเลือก 1: รีเซ็ตบอร์ดคะแนน -->
+          <button
+            onclick="closeAdminMenuModal(); resetLeaderboardWithAuth();"
+            class="w-full p-3.5 rounded-2xl bg-slate-800/80 hover:bg-purple-900/40 border border-slate-700/80 hover:border-purple-500 text-left flex items-center gap-3.5 transition group cursor-pointer"
+          >
+            <div
+              class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 font-bold flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform"
+            >
+              🔄
+            </div>
+            <div class="flex-grow">
+              <div
+                class="text-sm font-black text-white group-hover:text-purple-300"
+              >
+                รีเซ็ตบอร์ดคะแนน
+              </div>
+              <div class="text-xs text-slate-400 font-medium">
+                ล้างสถิติอันดับคะแนนของผู้เล่นทั้งหมดบน Cloud
+              </div>
+            </div>
+          </button>
+
+          <!-- ตัวเลือก 2: ล้างสิทธิ์ทำแบบทดสอบทุกคน -->
+          <button
+            onclick="closeAdminMenuModal(); resetPlayStatusWithAuth();"
+            class="w-full p-3.5 rounded-2xl bg-slate-800/80 hover:bg-indigo-900/40 border border-slate-700/80 hover:border-indigo-500 text-left flex items-center gap-3.5 transition group cursor-pointer"
+          >
+            <div
+              class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform"
+            >
+              🔓
+            </div>
+            <div class="flex-grow">
+              <div
+                class="text-sm font-black text-white group-hover:text-indigo-300"
+              >
+                ล้างสิทธิ์ทำแบบทดสอบทุกคน
+              </div>
+              <div class="text-xs text-slate-400 font-medium">
+                ปลดล็อกให้ผู้เล่นทุกเครื่องทำแบบทดสอบซ้ำได้
+              </div>
+            </div>
+          </button>
+
+          <!-- ตัวเลือก 3: Reset Log ทั้งหมด -->
+          <button
+            onclick="closeAdminMenuModal(); resetAllLogsWithAuth();"
+            class="w-full p-3.5 rounded-2xl bg-slate-800/80 hover:bg-rose-900/40 border border-slate-700/80 hover:border-rose-500 text-left flex items-center gap-3.5 transition group cursor-pointer"
+          >
+            <div
+              class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 font-bold flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform"
+            >
+              💥
+            </div>
+            <div class="flex-grow">
+              <div
+                class="text-sm font-black text-white group-hover:text-rose-300"
+              >
+                Reset Log ทั้งหมด
+              </div>
+              <div class="text-xs text-slate-400 font-medium">
+                ล้างข้อมูลประวัติลงชื่อเข้าใช้ + บอร์ดคะแนนทั้งหมด
+              </div>
+            </div>
+          </button>
+
+          <!-- ตัวเลือก 4: ส่งออกไฟล์ CSV -->
+          <button
+            onclick="closeAdminMenuModal(); exportCSV();"
+            class="w-full p-3.5 rounded-2xl bg-slate-800/80 hover:bg-emerald-900/40 border border-slate-700/80 hover:border-emerald-500 text-left flex items-center gap-3.5 transition group cursor-pointer"
+          >
+            <div
+              class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform"
+            >
+              📥
+            </div>
+            <div class="flex-grow">
+              <div
+                class="text-sm font-black text-white group-hover:text-emerald-300"
+              >
+                ส่งออกไฟล์ CSV
+              </div>
+              <div class="text-xs text-slate-400 font-medium">
+                ดาวน์โหลดรายงานข้อมูลลงชื่อและคะแนนทั้งหมด
+              </div>
+            </div>
+          </button>
+
+          <!-- ตัวเลือก 5: สลับปุ่มลบแถวตาราง -->
+          <button
+            onclick="toggleAdminTableMode()"
+            class="w-full p-3.5 rounded-2xl bg-slate-800/80 hover:bg-amber-900/40 border border-slate-700/80 hover:border-amber-500 text-left flex items-center gap-3.5 transition group cursor-pointer"
+          >
+            <div
+              class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform"
+            >
+              🗑️
+            </div>
+            <div class="flex-grow">
+              <div
+                id="admin-table-mode-title"
+                class="text-sm font-black text-white group-hover:text-amber-300"
+              >
+                เปิดปุ่มลบแถวตาราง
+              </div>
+              <div
+                id="admin-table-mode-desc"
+                class="text-xs text-slate-400 font-medium"
+              >
+                แสดงปุ่มลบข้อมูลทีละรายการในตาราง
+              </div>
+            </div>
+          </button>
+        </div>
+
+        <!-- ท้ายป๊อบอัพ -->
+        <div
+          class="p-4 bg-slate-950/60 border-t border-slate-800 flex justify-between items-center"
+        >
+          <a
+            href="index.html"
+            class="text-xs font-bold text-slate-400 hover:text-white flex items-center gap-1.5 transition"
+          >
+            🏠 กลับหน้าหลัก
+          </a>
+          <button
+            onclick="closeAdminMenuModal()"
+            class="px-5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer"
+          >
+            ปิดหน้าต่าง
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- 💜 Modal ป๊อบอัพกรอกรหัสผ่านโทนม่วง-ขาว (Custom Purple Modal) -->
     <div
